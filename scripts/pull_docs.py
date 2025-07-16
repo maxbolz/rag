@@ -25,7 +25,7 @@ for page in range(1, 2):
     all_articles.extend(results)
     print(f"Fetched {len(results)} items from page {page}")
 
-    print(results)
+    print(results[0]['fields']['bodyText'])
     # Safety check: stop if no data
     if not results:
         break
