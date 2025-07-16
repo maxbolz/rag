@@ -27,12 +27,11 @@ for page in range(1, 2):
     filtered_results = []
     for article in results:
         filtered_article = {
-            "id": article.get("id"),
+            "webUrl": article.get("webUrl"),
             "sectionName": article.get("sectionName"),
             "webTitle": article.get("webTitle"),
             "bodyText": article.get("fields", {}).get("bodyText"),
             "webPublicationDate": article.get("webPublicationDate"),
-            "webUrl": article.get("webUrl"),
         }
         filtered_results.append(filtered_article)
     
