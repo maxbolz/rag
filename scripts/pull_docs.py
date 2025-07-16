@@ -14,12 +14,12 @@ pages = total_needed // page_size
 all_articles = []
 
 conn = psycopg2.connect(
-    dbname="guardian",
-    user="postgres",
-    password="root",
-    host="localhost",
-    port=5432
-)
+        dbname=os.getenv("POSTGRES_DB", "guardian"),
+        user=os.getenv("POSTGRES_USER", "postgres"),
+        password=os.getenv("POSTGRES_PASSWORD", ""),
+        host=os.getenv("POSTGRES_HOST", "localhost"),
+        port=os.getenv("POSTGRES_PORT", 5432),
+    )
 
 cur = conn.cursor()
 

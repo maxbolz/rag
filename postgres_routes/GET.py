@@ -21,8 +21,9 @@ def embed_text(text: str) -> List[float]:
 # PostgreSQL connection helper
 def get_pg_connection():
     return psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB", "your_db"),
-        user=os.getenv("POSTGRES_USER", "your_user"),
+        dbname=os.getenv("POSTGRES_DB", "guardian"),
+        user=os.getenv("POSTGRES_USER", "postgres"),
         password=os.getenv("POSTGRES_PASSWORD", ""),
         host=os.getenv("POSTGRES_HOST", "localhost"),
         port=os.getenv("POSTGRES_PORT", 5432),
+    )
