@@ -1,5 +1,5 @@
 import os
-import psycopg2
+import clickhouse_connect
 import requests
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
@@ -13,15 +13,16 @@ total_needed = 100
 pages = total_needed // page_size
 all_articles = []
 
-conn = psycopg2.connect(
-    dbname="guardian",
-    user="postgres",
-    password="root",
-    host="localhost",
-    port=5432
-)
+conn = clickhouse_connect.get_client(
+                host='10.0.100.92',
+                port=8123,
+                username='user',
+                password='default',
+                database='guardian'
+            )
 
-cur = conn.cursor()
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 for page in range(1, pages + 1):
     params = {
@@ -37,33 +38,30 @@ for page in range(1, pages + 1):
     all_articles.extend(results)
     print(f"Fetched {len(results)} items from page {page}")
 
-    # print(results[0]['fields'])
-    article = results[0]['fields']
-    url = article['shortUrl']
-    title = article['headline']
-    body = article['bodyText']
-    publication_date = article['firstPublicationDate']
+    rows = []
+    for article in results[:1]:
+        fields = article.get('fields', {})
+        url = fields.get('shortUrl', '')
+        title = fields.get('headline', '')
+        body = fields.get('bodyText', '')
+        publication_date = fields.get('firstPublicationDate', '')
+        embedding = model.encode(body).tolist()
+        row = [url, title, body, publication_date, embedding]
+        rows.append(row)
+        print("Embedded: " + title)
 
-    model = SentenceTransformer("all-MiniLM-L6-v2")
-    embedding = model.encode(body)
-    embedding_list = embedding.tolist()
-
-    cur.execute(
-        """
-        INSERT INTO articles (url, title, body, publication_date, vector)
-        VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (url) DO NOTHING;
-        """,
-        (url, title, body, publication_date, embedding_list)
-    )
-
-    print("Embedded: " + title)
-
+    if rows:
+        print('Inserting rows into ClickHouse...')
+        print(rows)
+        conn.insert(
+            'guardian_articles',
+            rows,
+            column_names=['url', 'title', 'body', 'publication_date', 'embedding']
+        )
+    break
     if not results:
         break
 
-conn.commit()
-cur.close()
 conn.close()
 
 print(f"Total articles fetched: {len(all_articles)}")
