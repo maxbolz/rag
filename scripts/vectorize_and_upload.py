@@ -115,17 +115,17 @@ class GuardianVectorizer:
         
         for article in articles:
             # Combine title and body text for embedding
-            text_for_embedding = f"{article.get('webTitle', '')} {article.get('bodyText', '')}"
+            text_for_embedding = f"{article.get('title', '')} {article.get('body', '')}"
             
             # Generate embedding
             embedding = self.model.encode(text_for_embedding).tolist()
             
             # Add embedding to article data
             article_with_embedding = {
-                'url': article.get('webUrl', ''),
-                'title': article.get('webTitle', ''),
-                'body': article.get('bodyText', ''),
-                'publication_date': article.get('webPublicationDate', ''),
+                'url': article.get('url', ''),
+                'title': article.get('title', ''),
+                'body': article.get('body', ''),
+                'publication_date': article.get('publication_date', ''),
                 'embedding': embedding
             }
             embeddings.append(article_with_embedding)
@@ -158,25 +158,27 @@ class GuardianVectorizer:
         if not pub_date:
             pub_date = '2024-01-01T00:00:00Z'
         
-        single_record = [[
-            first_article['url'],
-            first_article['title'],
-            first_article['body'],
-            pub_date,
-            embedding
-        ]]
+        # Create SQL INSERT statement
+        embedding_str = '[' + ','.join(map(str, embedding)) + ']'
+        insert_sql = f"""
+        INSERT INTO guardian_articles (url, title, body, publication_date, embedding)
+        VALUES (
+            '{first_article['url']}',
+            '{first_article['title'].replace("'", "''")}',
+            '{first_article['body'].replace("'", "''")}',
+            '{pub_date}',
+            {embedding_str}
+        )
+        """
         
         try:
-            self.client.insert(
-                'guardian_articles',
-                single_record,
-                column_names=['url', 'title', 'body', 'publication_date', 'embedding']
-            )
+            self.client.command(insert_sql)
             print("Single record inserted successfully!")
             return True
         except Exception as e:
             print(f"Single record failed: {e}")
             return False
+       
     def search_similar_articles(self, query, limit=5):
         """Search for similar articles using vector similarity"""
         if self.client is None:
