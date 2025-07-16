@@ -39,13 +39,20 @@ class GuardianVectorizer:
             print("No ClickHouse connection available")
             return False
             
+        # Drop existing table to ensure correct schema
+        try:
+            self.client.command("DROP TABLE IF EXISTS guardian_articles")
+            print("Dropped existing table")
+        except Exception as e:
+            print(f"Warning: Could not drop table: {e}")
+            
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS guardian_articles (
-            url String,
+        CREATE TABLE guardian_articles (
+            url String NOT NULL,
             title String NOT NULL,
             body String NOT NULL,
             publication_date DateTime64(3, 'UTC'),
-            vector Array(Float64)
+            embedding Array(Float64) NOT NULL
         ) ENGINE = MergeTree()
         ORDER BY (url, publication_date)
         """
@@ -115,10 +122,10 @@ class GuardianVectorizer:
             
             # Add embedding to article data
             article_with_embedding = {
-                'webUrl': article.get('webUrl', ''),
-                'webTitle': article.get('webTitle', ''),
-                'bodyText': article.get('bodyText', ''),
-                'webPublicationDate': article.get('webPublicationDate', ''),
+                'url': article.get('webUrl', ''),
+                'title': article.get('webTitle', ''),
+                'body': article.get('bodyText', ''),
+                'publication_date': article.get('webPublicationDate', ''),
                 'embedding': embedding
             }
             embeddings.append(article_with_embedding)
@@ -126,43 +133,50 @@ class GuardianVectorizer:
         print(f"Generated embeddings for {len(embeddings)} articles")
         return embeddings
     
-    def upload_to_clickhouse(self, articles_with_embeddings):
-        """Upload articles with embeddings to ClickHouse"""
+    def upload_to_clickhouse_debug(self, articles_with_embeddings):
+        """Debug version to see data structure"""
         if self.client is None:
             print("No ClickHouse connection available")
             return False
             
         if not articles_with_embeddings:
-            print("No articles to upload")
             return False
         
-        # Prepare data for insertion
-        data = []
-        for article in articles_with_embeddings:
-            data.append([
-                article['webUrl'],
-                article['webTitle'],
-                article['bodyText'],
-                article['webPublicationDate'],
-                article['embedding']
-            ])
+        # Check first article structure
+        first_article = articles_with_embeddings[0]
+        print("First article keys:", list(first_article.keys()))
+        print("Embedding type:", type(first_article.get('embedding')))
+        print("Embedding length:", len(first_article.get('embedding', [])))
+        
+        # Try inserting just one record first
+        embedding = first_article['embedding']
+        if hasattr(embedding, 'tolist'):
+            embedding = embedding.tolist()
+        
+        # Handle empty publication_date
+        pub_date = first_article['publication_date']
+        if not pub_date:
+            pub_date = '2024-01-01T00:00:00Z'
+        
+        single_record = [[
+            first_article['url'],
+            first_article['title'],
+            first_article['body'],
+            pub_date,
+            embedding
+        ]]
         
         try:
-            # Insert data into ClickHouse
             self.client.insert(
                 'guardian_articles',
-                data,
-                column_names=[
-                    'url', 'webTitle', 
-                    'body', 'webPublicationDate', 'embedding'
-                ]
+                single_record,
+                column_names=['url', 'title', 'body', 'publication_date', 'embedding']
             )
-            print(f"Successfully uploaded {len(data)} articles to ClickHouse")
+            print("Single record inserted successfully!")
             return True
         except Exception as e:
-            print(f"Failed to upload to ClickHouse: {e}")
+            print(f"Single record failed: {e}")
             return False
-    
     def search_similar_articles(self, query, limit=5):
         """Search for similar articles using vector similarity"""
         if self.client is None:
@@ -176,8 +190,8 @@ class GuardianVectorizer:
         search_query = f"""
         SELECT 
             url,
-            webTitle,
-            bodyText,
+            title,
+            body,
             webPublicationDate,
             cosineDistance(embedding, {query_embedding}) as distance
         FROM guardian_articles
@@ -214,7 +228,7 @@ class GuardianVectorizer:
         articles_with_embeddings = self.generate_embeddings(articles)
         
         # Upload to ClickHouse
-        success = self.upload_to_clickhouse(articles_with_embeddings)
+        success = self.upload_to_clickhouse_debug(articles_with_embeddings)
         
         if success:
             print("Pipeline completed successfully!")
