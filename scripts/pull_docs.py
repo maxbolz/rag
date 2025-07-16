@@ -1,5 +1,7 @@
-import requests
 import os
+import psycopg2
+import requests
+from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -7,41 +9,61 @@ load_dotenv()
 API_KEY = os.getenv("GUARDIAN_API_KEY")
 BASE = "https://content.guardianapis.com/search"
 page_size = 1
-total_needed = 1
+total_needed = 100
 pages = total_needed // page_size
 all_articles = []
 
-for page in range(1, 2):
+conn = psycopg2.connect(
+    dbname="guardian",
+    user="postgres",
+    password="root",
+    host="localhost",
+    port=5432
+)
+
+cur = conn.cursor()
+
+for page in range(1, pages + 1):
     params = {
         "api-key": API_KEY,
         "order-by": "newest",
         "page-size": page_size,
         "page": page,
-        "show-fields": "bodyText",
+        "show-fields": "all",
     }
     resp = requests.get(BASE, params=params)
     data = resp.json().get("response", {})
     results = data.get("results", [])
-    
-    # Filter to only include id, sectionName, and bodyText
-    filtered_results = []
-    for article in results:
-        filtered_article = {
-            "id": article.get("id"),
-            "sectionName": article.get("sectionName"),
-            "webTitle": article.get("webTitle"),
-            "bodyText": article.get("fields", {}).get("bodyText"),
-            "webPublicationDate": article.get("webPublicationDate"),
-            "webUrl": article.get("webUrl"),
-        }
-        filtered_results.append(filtered_article)
-    
-    all_articles.extend(filtered_results)
-    print(f"Fetched {len(filtered_results)} items from page {page}")
+    all_articles.extend(results)
+    print(f"Fetched {len(results)} items from page {page}")
 
-    print(filtered_results)
-    # Safety check: stop if no data
+    # print(results[0]['fields'])
+    article = results[0]['fields']
+    url = article['shortUrl']
+    title = article['headline']
+    body = article['bodyText']
+    publication_date = article['firstPublicationDate']
+
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    embedding = model.encode(body)
+    embedding_list = embedding.tolist()
+
+    cur.execute(
+        """
+        INSERT INTO articles (url, title, body, publication_date, vector)
+        VALUES (%s, %s, %s, %s, %s)
+        ON CONFLICT (url) DO NOTHING;
+        """,
+        (url, title, body, publication_date, embedding_list)
+    )
+
+    print("Embedded: " + title)
+
     if not results:
         break
+
+conn.commit()
+cur.close()
+conn.close()
 
 print(f"Total articles fetched: {len(all_articles)}")
