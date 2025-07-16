@@ -17,15 +17,29 @@ for page in range(1, 2):
         "order-by": "newest",
         "page-size": page_size,
         "page": page,
-        "show-fields": "all",
+        "show-fields": "bodyText",
     }
     resp = requests.get(BASE, params=params)
     data = resp.json().get("response", {})
     results = data.get("results", [])
-    all_articles.extend(results)
-    print(f"Fetched {len(results)} items from page {page}")
+    
+    # Filter to only include id, sectionName, and bodyText
+    filtered_results = []
+    for article in results:
+        filtered_article = {
+            "id": article.get("id"),
+            "sectionName": article.get("sectionName"),
+            "webTitle": article.get("webTitle"),
+            "bodyText": article.get("fields", {}).get("bodyText"),
+            "webPublicationDate": article.get("webPublicationDate"),
+            "webUrl": article.get("webUrl"),
+        }
+        filtered_results.append(filtered_article)
+    
+    all_articles.extend(filtered_results)
+    print(f"Fetched {len(filtered_results)} items from page {page}")
 
-    print(results[0]['fields']['bodyText'])
+    print(filtered_results)
     # Safety check: stop if no data
     if not results:
         break
