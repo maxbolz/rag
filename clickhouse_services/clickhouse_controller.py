@@ -1,15 +1,8 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
-from datetime import datetime
 from clickhouse_services.clickhouse_dao import ClickhouseDao
+from clickhouse_services.clickhouse_dao import Article
 
 app = FastAPI()
-
-class Article(BaseModel):
-    url: str
-    title: str
-    body: str
-    publication_date: datetime
 
 # Create controller instance
 clickhouse_dao = ClickhouseDao()
@@ -19,3 +12,6 @@ async def related_articles(query: str):
     return clickhouse_dao.related_articles(query)
 
 
+@app.post("/upload-articles")
+async def upload_articles(articles: list[Article]):
+    return clickhouse_dao.upload_articles(articles)

@@ -4,14 +4,11 @@ from clickhouse_services.clickhouse_controller import app
 # Create test client
 client = TestClient(app)
 
-def test_related_articles():
-    """Test the /related-articles endpoint"""
-    
-    # Test query
-    query = "epstein"
+def test_upload_articles():
+    """Test the /upload-articles endpoint"""
     
     # Make request
-    response = client.get(f"/related-articles?query={query}")
+    response = client.post(f"/upload-articles")
     
     print(f"Status Code: {response.status_code}")
     print(f"Response: {response.json()}")
@@ -19,4 +16,4 @@ def test_related_articles():
     return response
 
 if __name__ == "__main__":
-    test_related_articles() 
+    test_upload_articles() 
