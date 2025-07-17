@@ -1,2 +1,5 @@
 .env
+.venv
+.DS_STORE
+clickhouse_services/__pycache__/
 scripts/.idea
