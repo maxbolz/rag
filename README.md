@@ -52,3 +52,6 @@ Activate Venv for Windows: `.venv/Scripts/activate`
 RUNNING
 --
 `python src/pull_docs.py`
+=======
+To reach clickhouse endpoints:
+python -m clickhouse_services.tests.[name of test]
