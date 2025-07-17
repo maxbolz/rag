@@ -9,26 +9,28 @@ load_dotenv()
 API_KEY = os.getenv("GUARDIAN_API_KEY")
 BASE = "https://content.guardianapis.com/search"
 page_size = 1
-total_needed = 100
+total_needed = 1000
 pages = total_needed // page_size
 all_articles = []
 
 conn = psycopg2.connect(
-    dbname="guardian",
-    user="postgres",
-    password="root",
-    host="localhost",
-    port=5432
+    dbname=os.getenv("DB_NAME"),
+    user=os.getenv("DB_USER"),
+    password=os.getenv("DB_PASSWORD"),
+    host=os.getenv("DB_HOST"),
+    port=5430
 )
 
 cur = conn.cursor()
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
 for page in range(1, pages + 1):
     params = {
         "api-key": API_KEY,
         "order-by": "newest",
         "page-size": page_size,
-        "page": page,
+        "page": page + 10000,       # Offset cuz I was getting duplicates
         "show-fields": "all",
     }
     resp = requests.get(BASE, params=params)
@@ -44,26 +46,25 @@ for page in range(1, pages + 1):
     body = article['bodyText']
     publication_date = article['firstPublicationDate']
 
-    model = SentenceTransformer("all-MiniLM-L6-v2")
     embedding = model.encode(body)
     embedding_list = embedding.tolist()
 
-    cur.execute(
-        """
-        INSERT INTO articles (url, title, body, publication_date, vector)
-        VALUES (%s, %s, %s, %s, %s)
-        ON CONFLICT (url) DO NOTHING;
-        """,
-        (url, title, body, publication_date, embedding_list)
-    )
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            INSERT INTO articles (url, title, body, publication_date, vector)
+            VALUES (%s, %s, %s, %s, %s)
+            ON CONFLICT (url) DO NOTHING;
+            """,
+            (url, title, body, publication_date, embedding_list)
+        )
+        conn.commit()
 
     print("Embedded: " + title)
 
     if not results:
         break
 
-conn.commit()
-cur.close()
 conn.close()
 
 print(f"Total articles fetched: {len(all_articles)}")
