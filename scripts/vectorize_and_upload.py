@@ -193,7 +193,7 @@ class GuardianVectorizer:
             return False
 
         if drop:
-            if not self.create_vector_table(drop):
+            if not self.create_vector_table():
                 logging.error("Pipeline failed: Table creation error.")
                 return False
 
@@ -217,7 +217,7 @@ class GuardianVectorizer:
 
 def main():
     vectorizer = GuardianVectorizer()
-    success = vectorizer.run_pipeline(page_size=1, total_needed=10000, drop=False)
+    success = vectorizer.run_pipeline(page_size=100, total_needed=5000, drop=True)
     # if success:
     #     print("\nTesting search functionality...")
     #     results = vectorizer.search_similar_articles("climate change", limit=3)
