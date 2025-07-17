@@ -30,8 +30,12 @@ Getting Set Up
       POSTGRES_PASSWORD="<<your-password>>"
       POSTGRES_HOST="localhost"
       POSTGRES_PORT=5432
+      
+      GUARDIAN_API_KEY=""
       ```
-
+5. Run docker for Postgres database
+    cd rag 
+    docker-compose -f docker/docker-compose.yml up -d
 
 
 VENV STUFF
