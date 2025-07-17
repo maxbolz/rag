@@ -5,8 +5,19 @@ import logging
 import requests
 from pydantic import BaseModel
 from datetime import datetime
+from dotenv import load_dotenv
 
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
+load_dotenv()
 
 class Article(BaseModel):
     url: str
@@ -16,12 +27,12 @@ class Article(BaseModel):
 
 class ClickhouseDao:
     def __init__(self):
-        self.connect_clickhouse()
         self.API_KEY = os.getenv("GUARDIAN_API_KEY")
         self.BASE = "https://content.guardianapis.com/search"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.client = None
-        logging.info("GuardianVectorizer initialized.")
+        self.connect_clickhouse()
+        logging.info("DAO initialized.")
 
     def connect_clickhouse(self):
         """Connect to ClickHouse database"""
@@ -33,10 +44,12 @@ class ClickhouseDao:
                 password='default',
                 database='guardian'
             )
+            logging.info("Connected to ClickHouse successfully.")
             print("Connected to ClickHouse successfully")
             return True
         except Exception as e:
-            print(f"Failed to connect to ClickHouse: {e}")
+            logging.error(f"Failed to connect to ClickHouse: {e}")
+            print(f"Failed to connects to ClickHouse: {e}")
             self.client = None
             return False
     
@@ -84,7 +97,7 @@ class ClickhouseDao:
         logging.info("Embeddings generated.")
         return rows
     
-    def upload_to_clickhouse_debug(self, articles_with_embeddings):
+    def upload_to_clickhouse(self, articles_with_embeddings):
         """Debug version to see data structure"""
         if self.client is None:
             logging.error("No ClickHouse connection available.")
@@ -99,7 +112,7 @@ class ClickhouseDao:
                 logging.info(f"Inserting {len(articles_with_embeddings)} rows into ClickHouse...")
                 print('Inserting rows into ClickHouse...')
                 self.client.insert(
-                    'post_test',
+                    'guardian_articles',
                     articles_with_embeddings,
                     column_names=['url', 'title', 'body', 'publication_date', 'embedding']
                 )
@@ -139,15 +152,17 @@ class ClickhouseDao:
             print(f"Search failed: {e}")
             return []
         
-    def upload_articles(self, articles: list[Article]):
+    def upload_articles(self):
+        """Run the complete pipeline to fetch, vectorize and upload Guardian articles"""
+        logging.info("Starting Guardian article vectorization pipeline...")
         try:
             articles = self.fetch_guardian_articles(1, 10)
-        except Exception as e:
-            print(f"Fetch failed: {e}")
-            return False
-        try:
             articles_with_embeddings = self.generate_embeddings(articles)
-            return self.upload_to_clickhouse_debug(articles_with_embeddings)
+            success = self.upload_to_clickhouse(articles_with_embeddings)
+            if success:
+                logging.info("Pipeline completed successfully")
+                return True
+            return False   
         except Exception as e:
-            print(f"Generate embeddings failed: {e}")
+            logging.error(f"Pipeline failed: {e}")
             return False

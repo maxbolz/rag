@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from clickhouse_services.clickhouse_dao import ClickhouseDao
-from clickhouse_services.clickhouse_dao import Article
 
 app = FastAPI()
 
@@ -13,5 +12,5 @@ async def related_articles(query: str):
 
 
 @app.post("/upload-articles")
-async def upload_articles(articles: list[Article]):
-    return clickhouse_dao.upload_articles(articles)
+async def upload_articles():
+    return clickhouse_dao.upload_articles()
