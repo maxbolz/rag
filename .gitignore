@@ -2,3 +2,5 @@
 .venv
 .DS_STORE
 scripts/.idea
+.idea
+
