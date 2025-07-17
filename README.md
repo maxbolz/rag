@@ -7,3 +7,6 @@
   MM   `Mb.   A'     VML `Mb.     MM  
 .JMML. .JMM..AMA.   .AMMA. `"bmmmdPY  
 ```
+
+To reach clickhouse endpoints:
+python -m clickhouse_services.tests.[name of test]
