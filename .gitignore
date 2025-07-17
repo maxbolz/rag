@@ -1,3 +1,4 @@
 .env
 .venv
 .DS_STORE
+clickhouse_services/__pycache__/

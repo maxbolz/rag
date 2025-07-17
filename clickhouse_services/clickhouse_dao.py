@@ -38,7 +38,7 @@ class ClickhouseDao:
             url,
             title,
             body,
-            webPublicationDate,
+            publication_date,
             cosineDistance(embedding, {query_embedding}) as distance
         FROM guardian_articles
         ORDER BY distance ASC
