@@ -76,62 +76,31 @@ class GuardianVectorizer:
                 "order-by": "newest",
                 "page-size": page_size,
                 "page": page,
-                "show-fields": "bodyText",
+                "show-fields": "all",
             }
-            
-            try:
-                resp = requests.get(self.BASE, params=params)
-                data = resp.json().get("response", {})
-                results = data.get("results", [])
-                
-                # Filter to only include required fields
-                filtered_results = []
-                for article in results:
-                    filtered_article = {
-                        "url": article.get("webUrl"),
-                        "title": article.get("webTitle"),
-                        "body": article.get("fields", {}).get("bodyText"),
-                        "publication_date": article.get("webPublicationDate"),
-                    }
-                    filtered_results.append(filtered_article)
-                
-                all_articles.extend(filtered_results)
-                print(f"Fetched {len(filtered_results)} items from page {page}")
-                
-                # Safety check: stop if no data
-                if not results:
-                    break
-                    
-            except Exception as e:
-                print(f"Error fetching page {page}: {e}")
-                break
-        
+    
+            resp = requests.get(self.BASE, params=params)
+            data = resp.json().get("response", {})
+            results = data.get("results", [])
+            all_articles.extend(results)
         print(f"Total articles fetched: {len(all_articles)}")
+
         return all_articles
     
     def generate_embeddings(self, articles):
-        """Generate embeddings for articles"""
-        embeddings = []
-        
+        """Generate embeddings for articles"""        
+        rows = []
         for article in articles:
-            # Combine title and body text for embedding
-            text_for_embedding = f"{article.get('title', '')} {article.get('body', '')}"
-            
-            # Generate embedding
-            embedding = self.model.encode(text_for_embedding).tolist()
-            
-            # Add embedding to article data
-            article_with_embedding = {
-                'url': article.get('url', ''),
-                'title': article.get('title', ''),
-                'body': article.get('body', ''),
-                'publication_date': article.get('publication_date', ''),
-                'embedding': embedding
-            }
-            embeddings.append(article_with_embedding)
-        
-        print(f"Generated embeddings for {len(embeddings)} articles")
-        return embeddings
+            fields = article.get('fields', {})
+            url = fields.get('shortUrl', '')
+            title = fields.get('headline', '')
+            body = fields.get('bodyText', '')
+            publication_date = fields.get('firstPublicationDate', '2024-01-01T00:00:00Z')
+            embedding = self.model.encode(body).tolist()
+            row = [url, title, body, publication_date, embedding]
+            rows.append(row)
+
+        return rows
     
     def upload_to_clickhouse_debug(self, articles_with_embeddings):
         """Debug version to see data structure"""
@@ -141,40 +110,16 @@ class GuardianVectorizer:
             
         if not articles_with_embeddings:
             return False
-        
-        # Check first article structure
-        first_article = articles_with_embeddings[0]
-        print("First article keys:", list(first_article.keys()))
-        print("Embedding type:", type(first_article.get('embedding')))
-        print("Embedding length:", len(first_article.get('embedding', [])))
-        
-        # Try inserting just one record first
-        embedding = first_article['embedding']
-        if hasattr(embedding, 'tolist'):
-            embedding = embedding.tolist()
-        
-        # Handle empty publication_date
-        pub_date = first_article['publication_date']
-        if not pub_date:
-            pub_date = '2024-01-01T00:00:00Z'
-        
-        # Create SQL INSERT statement
-        embedding_str = '[' + ','.join(map(str, embedding)) + ']'
-        insert_sql = f"""
-        INSERT INTO guardian_articles (url, title, body, publication_date, embedding)
-        VALUES (
-            '{first_article['url']}',
-            '{first_article['title'].replace("'", "''")}',
-            '{first_article['body'].replace("'", "''")}',
-            '{pub_date}',
-            {embedding_str}
-        )
-        """
-        
         try:
-            self.client.command(insert_sql)
-            print("Single record inserted successfully!")
-            return True
+            if articles_with_embeddings:
+                print('Inserting rows into ClickHouse...')
+                print(articles_with_embeddings)
+                self.client.insert(
+                    'guardian_articles',
+                    articles_with_embeddings,
+                    column_names=['url', 'title', 'body', 'publication_date', 'embedding']
+                )
+                return True
         except Exception as e:
             print(f"Single record failed: {e}")
             return False
@@ -243,7 +188,7 @@ def main():
     vectorizer = GuardianVectorizer()
     
     # Run the complete pipeline
-    success = vectorizer.run_pipeline(page_size=10, total_needed=50)
+    success = vectorizer.run_pipeline(page_size=100, total_needed=1000)
     
     # if success:
     #     # Test search functionality

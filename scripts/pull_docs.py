@@ -1,5 +1,7 @@
-import requests
 import os
+import clickhouse_connect
+import requests
+from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -7,40 +9,56 @@ load_dotenv()
 API_KEY = os.getenv("GUARDIAN_API_KEY")
 BASE = "https://content.guardianapis.com/search"
 page_size = 1
-total_needed = 1
+total_needed = 10
 pages = total_needed // page_size
 all_articles = []
 
-for page in range(1, 2):
+conn = clickhouse_connect.get_client(
+                host='10.0.100.92',
+                port=8123,
+                username='user',
+                password='default',
+                database='guardian'
+            )
+
+
+model = SentenceTransformer("all-MiniLM-L6-v2")
+
+all_articles = []
+for page in range(1, pages + 1):
     params = {
         "api-key": API_KEY,
         "order-by": "newest",
         "page-size": page_size,
         "page": page,
-        "show-fields": "bodyText",
+        "show-fields": "all",
     }
     resp = requests.get(BASE, params=params)
     data = resp.json().get("response", {})
     results = data.get("results", [])
-    
-    # Filter to only include id, sectionName, and bodyText
-    filtered_results = []
-    for article in results:
-        filtered_article = {
-            "webUrl": article.get("webUrl"),
-            "sectionName": article.get("sectionName"),
-            "webTitle": article.get("webTitle"),
-            "bodyText": article.get("fields", {}).get("bodyText"),
-            "webPublicationDate": article.get("webPublicationDate"),
-        }
-        filtered_results.append(filtered_article)
-    
-    all_articles.extend(filtered_results)
-    print(f"Fetched {len(filtered_results)} items from page {page}")
+    all_articles.extend(results)
+    print(f"Fetched {len(results)} items from page {page}")
 
-    print(filtered_results)
-    # Safety check: stop if no data
-    if not results:
-        break
+rows = []
+for article in all_articles[:1]:
+    fields = article.get('fields', {})
+    url = fields.get('shortUrl', '')
+    title = fields.get('headline', '')
+    body = fields.get('bodyText', '')
+    publication_date = fields.get('firstPublicationDate', '')
+    embedding = model.encode(body).tolist()
+    row = [url, title, body, publication_date, embedding]
+    rows.append(row)
+    print("Embedded: " + title)
+
+if rows:
+    print('Inserting rows into ClickHouse...')
+    print(rows)
+    conn.insert(
+        'guardian_articles',
+        rows,
+        column_names=['url', 'title', 'body', 'publication_date', 'embedding']
+    )
+conn.close()
 
 print(f"Total articles fetched: {len(all_articles)}")
