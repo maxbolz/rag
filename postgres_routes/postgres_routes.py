@@ -43,11 +43,10 @@ def search_articles(q: str, k: int = 5):
         emb = model.encode(q).tolist()
         cur.execute(
             """
-            CREATE EXTENSION IF NOT EXISTS vector;
             SELECT url, title, body, publication_date,
-                   1 - (vector <=> %s) AS similarity
+                   1 - (vector <=> %s::vector) AS similarity
             FROM articles
-            ORDER BY vector <=> %s
+            ORDER BY vector <=> %s::vector
             LIMIT %s
             """,
             (emb, emb, k)
