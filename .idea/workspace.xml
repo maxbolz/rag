@@ -5,7 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="e4e5584c-e8cd-4954-a1ed-6d39a8bb7b23" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/postgres_routes/postgres_routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/postgres_routes/postgres_routes.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +38,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "WebServerToolWindowFactoryState": "false",
     "git-widget-placeholder": "postgres-routes",
+    "last_opened_file_path": "C:/Users/pigi3/OneDrive/Desktop/College Work/Summer 2 2025/rag",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
