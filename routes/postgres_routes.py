@@ -1,9 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, FastAPI
 from models.article import ArticleWithScore
 from typing import List
 import os
 # app.py
-from fastapi import FastAPI, HTTPException
 from pgvector.psycopg import register_vector
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
