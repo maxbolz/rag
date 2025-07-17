@@ -9,16 +9,16 @@ load_dotenv()
 API_KEY = os.getenv("GUARDIAN_API_KEY")
 BASE = "https://content.guardianapis.com/search"
 page_size = 1
-total_needed = 100
+total_needed = 3
 pages = total_needed // page_size
 all_articles = []
 
 conn = psycopg2.connect(
-    dbname="guardian",
-    user="postgres",
-    password="root",
+    dbname="VectorEmbeds",
+    user="test",
+    password="1234",
     host="localhost",
-    port=5432
+    port=5430
 )
 
 cur = conn.cursor()
