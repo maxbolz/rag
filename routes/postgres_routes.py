@@ -60,3 +60,8 @@ def search_articles(q: str, k: int = 5):
     except Exception as e:
         logging.error(f"Exception in /search endpoint: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if cur is not None:
+            cur.close()
+        if conn is not None:
+            conn.close()
