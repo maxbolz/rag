@@ -1,0 +1,14 @@
+services:
+  db:
+    image: ankane/pgvector:latest
+    container_name: rag
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - db_data:/var/lib/postgresql/data # Persistent volume for DB storage
+      - ./init:/docker-entrypoint-initdb.d # SQL/init scripts on startup
+    ports:
+      - 5430:5432 # docker:postgres
+
+volumes:
+  db_data:
