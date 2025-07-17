@@ -42,7 +42,7 @@ class ClickhouseDao:
                 port=8123,
                 username='user',
                 password='default',
-                database='default'
+                database='guardian'
             )
             logging.info("Connected to ClickHouse successfully.")
             print("Connected to ClickHouse successfully")
@@ -112,7 +112,7 @@ class ClickhouseDao:
                 logging.info(f"Inserting {len(articles_with_embeddings)} rows into ClickHouse...")
                 print('Inserting rows into ClickHouse...')
                 self.client.insert(
-                    'post_test',
+                    'guardian_articles',
                     articles_with_embeddings,
                     column_names=['url', 'title', 'body', 'publication_date', 'embedding']
                 )
