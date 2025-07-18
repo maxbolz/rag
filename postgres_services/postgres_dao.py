@@ -31,11 +31,11 @@ class PostgresDao:
         """Connect to Postgres database"""
         try:
             self.client = psycopg.connect(
-                dbname=os.getenv("POSTGRES_DB", "guardian"),
-                user=os.getenv("POSTGRES_USER", "postgres"),
-                password=os.getenv("POSTGRES_PASSWORD", ""),
-                host=os.getenv("POSTGRES_HOST", "localhost"),
-                port=os.getenv("POSTGRES_PORT", 5432)
+                dbname=os.getenv("POSTGRES_DB", "VectorEmbeds"),
+                user=os.getenv("POSTGRES_USER", "test"),
+                password=os.getenv("POSTGRES_PASSWORD", "1234"),
+                host=os.getenv("POSTGRES_HOST", "10.0.100.77"),
+                port=os.getenv("POSTGRES_PORT", 5430)
             )
             logging.info("Connected to Postgres successfully.")
             print("Connected to Postgres successfully")
