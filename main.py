@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from routes.postgres_routes import router as psql_router
+from postgres_routes import router as psql_router
 
 app = FastAPI()
 
