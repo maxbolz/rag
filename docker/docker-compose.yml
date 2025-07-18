@@ -1,14 +1,43 @@
+version: "3.8"
+
 services:
   db:
     image: ankane/pgvector:latest
     container_name: rag
     restart: unless-stopped
-    env_file: .env
     volumes:
       - db_data:/var/lib/postgresql/data # Persistent volume for DB storage
       - ./init:/docker-entrypoint-initdb.d # SQL/init scripts on startup
     ports:
       - 5430:5432 # docker:postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-VectorEmbeds}
+      - POSTGRES_USER=${POSTGRES_USER:-test}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
+    ulimits:                                          # 🧠 Optional tuning
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: rag-app
+    depends_on:
+      - db
+    ports:
+      - 8000:8000
+    environment:
+      - POSTGRES_HOST="10.0.100.77"
+      - POSTGRES_PORT="5430"
+    volumes:
+      - ../scripts:/app/scripts
+      - ../requirements.txt:/app/requirements.txt
+      - ../main.py:/app/main.py
+    working_dir: /app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    restart: unless-stopped
 
 volumes:
   db_data:
