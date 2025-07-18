@@ -3,12 +3,31 @@ services:
     image: ankane/pgvector:latest
     container_name: rag
     restart: unless-stopped
-    env_file: .env
+    env_file: ../.env
     volumes:
       - db_data:/var/lib/postgresql/data # Persistent volume for DB storage
       - ./init:/docker-entrypoint-initdb.d # SQL/init scripts on startup
     ports:
       - 5430:5432 # docker:postgres
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-guardian}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+
+  app:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    container_name: rag-app
+    depends_on:
+      - db
+    env_file: ../.env
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
+    volumes:
+      - ../scripts:/app/scripts
+    command: ["python", "scripts/pull_docs.py"]
 
 volumes:
   db_data:
