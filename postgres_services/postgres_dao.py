@@ -24,7 +24,6 @@ class PostgresDao:
         self.BASE = "https://content.guardianapis.com/search"
         self.model = SentenceTransformer('all-MiniLM-L6-v2')
         self.client = None
-        self.connect_postgres()
         logging.info("DAO initialized.")
 
     def connect_postgres(self):
@@ -48,6 +47,7 @@ class PostgresDao:
 
     def related_articles(self, query: str, limit: int = 5):
         try:
+            self.connect_postgres()
             conn = self.client
             conn.autocommit = True
             register_vector(conn)
