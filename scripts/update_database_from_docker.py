@@ -1,6 +1,6 @@
 import requests
 import os
-import json
+import sys
 import logging
 from dotenv import load_dotenv
 from sentence_transformers import SentenceTransformer
@@ -11,11 +11,15 @@ import uuid
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s %(levelname)s %(message)s',
+    format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler()
+        logging.FileHandler('/app/logs/upload.log'),
+        logging.StreamHandler(sys.stdout)
     ]
 )
+
+logger = logging.getLogger(__name__)
+
 
 load_dotenv()
 
@@ -31,12 +35,12 @@ class GuardianVectorizer:
         """Connect to ClickHouse database"""
         try:
             self.client = clickhouse_connect.get_client(
-                host='10.0.100.92',
-                port=8123,
-                username='user',
-                password='default',
-                database='guardian'
-            )
+            host=os.getenv('CLICKHOUSE_HOST', '10.0.100.92'),
+            port=int(os.getenv('CLICKHOUSE_PORT', '8123')),
+            username=os.getenv('CLICKHOUSE_USER', 'default'),
+            password=os.getenv('CLICKHOUSE_PASSWORD', ''),
+            database=os.getenv('CLICKHOUSE_DATABASE', 'default')
+        )
             logging.info("Connected to ClickHouse successfully.")
             print("Connected to ClickHouse successfully")
             return True
@@ -217,7 +221,7 @@ class GuardianVectorizer:
 
 def main():
     vectorizer = GuardianVectorizer()
-    success = vectorizer.run_pipeline(page_size=100, total_needed=5000, drop=False)
+    success = vectorizer.run_pipeline(page_size=1, total_needed=10, drop=False)
     # if success:
     #     print("\nTesting search functionality...")
     #     results = vectorizer.search_similar_articles("climate change", limit=3)
