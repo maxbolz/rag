@@ -9,8 +9,8 @@ services:
       - "8124:8123" # HTTP interface
       - "9001:9000" # Native TCP interface
     volumes:
-      - ./config/config.xml:/etc/clickhouse-server/config.xml
-      - ./config/users.xml:/etc/clickhouse-server/users.xml
+      - ./user_directories/config.xml:/etc/clickhouse-server/user_directories/config.xml
+      - ./user_directories/users.xml:/etc/clickhouse-server/user_directories/users.xml
       - ./data:/var/lib/clickhouse
       - ./logs:/var/log/clickhouse-server
     environment:
