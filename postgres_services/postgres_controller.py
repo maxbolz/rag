@@ -19,7 +19,7 @@ async def related_articles(query: str):
 @app.post("/upload-articles")
 async def upload_articles():
     start_time = time.time()
-    pull_docs()
+    result = pull_docs()
     end_time = time.time()
     print(f"Time taken: {end_time - start_time} seconds")
-    return "Status: 100"
+    return result

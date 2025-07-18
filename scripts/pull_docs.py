@@ -61,7 +61,8 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
         print("Embedded: " + title)
 
         if not results:
-            break
+            return False
+        return True
 
     conn.close()
 
