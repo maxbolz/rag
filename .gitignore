@@ -2,5 +2,5 @@
 .venv
 .DS_STORE
 clickhouse_services/__pycache__/
-clickhouse_services/tests/__pycache__/
+clickhouse_services/scripts/__pycache__/
 scripts/.idea
