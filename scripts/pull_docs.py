@@ -28,7 +28,7 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
             "api-key": API_KEY,
             "order-by": "newest",
             "page-size": page_size,
-            "page": page,
+            "page": page + 14444,
             "show-fields": "all",
         }
         resp = requests.get(BASE, params=params)
@@ -66,4 +66,3 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
     conn.close()
 
     print(f"Total articles fetched: {len(all_articles)}")
-
