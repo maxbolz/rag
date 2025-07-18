@@ -13,13 +13,13 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
     all_articles = []
     pages = total_needed // page_size
 
-conn = psycopg2.connect(
-        dbname=os.getenv("POSTGRES_DB", "guardian"),
-        user=os.getenv("POSTGRES_USER", "postgres"),
-        password=os.getenv("POSTGRES_PASSWORD", ""),
-        host=os.getenv("POSTGRES_HOST", "localhost"),
-        port=os.getenv("POSTGRES_PORT", 5432),
-    )
+    conn = psycopg2.connect(
+            dbname=os.getenv("POSTGRES_DB", "guardian"),
+            user=os.getenv("POSTGRES_USER", "postgres"),
+            password=os.getenv("POSTGRES_PASSWORD", ""),
+            host=os.getenv("POSTGRES_HOST", "localhost"),
+            port=os.getenv("POSTGRES_PORT", 5432),
+        )
 
     cur = conn.cursor()
 
@@ -70,8 +70,3 @@ conn = psycopg2.connect(
     print(f"Total articles fetched: {len(all_articles)}")
 
 pull_docs()
-
-def pull_docs_stream(articles: int = 10):
-    while True:
-        pull_docs(articles, 1)
-        time.sleep(86400)
