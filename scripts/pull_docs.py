@@ -21,8 +21,6 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
             port=os.getenv("POSTGRES_PORT", 5432),
         )
 
-    cur = conn.cursor()
-
     model = SentenceTransformer("all-MiniLM-L6-v2")
 
     for page in range(1, pages + 1):
@@ -69,4 +67,3 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
 
     print(f"Total articles fetched: {len(all_articles)}")
 
-pull_docs()
