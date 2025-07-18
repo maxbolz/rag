@@ -14,4 +14,4 @@ RUN pip install torch torchvision torchaudio --index-url https://download.pytorc
 # Default command if not overridden by docker-compose
 
 # This is where Uvicorn runs your FastAPI app!
-CMD ["uvicorn", "postgres:app", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uvicorn", "postgres_services.postgres_controller:app", "--host", "0.0.0.0", "--port", "80"]
