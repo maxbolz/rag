@@ -1,0 +1,73 @@
+<clickhouse>
+    <users>
+        <!-- Default user (for local access) -->
+        <default>
+            <password></password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+        </default>
+        
+        <admin>
+    <password>default123</password>
+        <networks>
+            <ip>::/0</ip>
+        </networks>
+        <profile>default</profile>
+        <quota>default</quota>
+        <!-- This gives admin privileges -->
+        <access_management>1</access_management>
+    </admin>
+
+        <!-- Secure user for network access -->
+        <admin>
+            <password_sha256_hex>ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f</password_sha256_hex>
+            <!-- Password is "secret123" - CHANGE THIS IN PRODUCTION -->
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>default</profile>
+            <quota>default</quota>
+        </admin>
+        
+        <!-- Read-only user for safe network access -->
+        <readonly>
+            <password>readonly123</password>
+            <networks>
+                <ip>::/0</ip>
+            </networks>
+            <profile>readonly</profile>
+            <quota>default</quota>
+        </readonly>
+    </users>
+    
+    <profiles>
+        <default>
+            <max_memory_usage>10000000000</max_memory_usage>
+            <use_uncompressed_cache>0</use_uncompressed_cache>
+            <load_balancing>random</load_balancing>
+        </default>
+        
+        <readonly>
+            <readonly>1</readonly>
+            <max_memory_usage>10000000000</max_memory_usage>
+            <use_uncompressed_cache>0</use_uncompressed_cache>
+            <load_balancing>random</load_balancing>
+        </readonly>
+    </profiles>
+    
+    <quotas>
+        <default>
+            <interval>
+                <duration>3600</duration>
+                <queries>0</queries>
+                <errors>0</errors>
+                <result_rows>0</result_rows>
+                <read_rows>0</read_rows>
+                <execution_time>0</execution_time>
+            </interval>
+        </default>
+    </quotas>
+</clickhouse>
