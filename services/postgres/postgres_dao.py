@@ -47,6 +47,7 @@ class PostgresDao:
             return False
 
     def related_articles(self, query: str, limit: int = 5):
+        global cur, conn
         try:
             self.connect_postgres()
             conn = self.client
