@@ -41,6 +41,8 @@ services:
       - "8000:80"
     volumes:
       - .:/app
+      - ../requirements.txt:/app/requirements.txt
+      - ../.env:/app/.env
     networks:
       - clickhouse-network
     restart: unless-stopped
