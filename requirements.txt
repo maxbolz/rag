@@ -13,4 +13,7 @@ langchain-community
 langchain-core
 langchain-text-splitters
 langgraph
+langchain-anthropic
 beautifulsoup4
+anthropic
+langchain-prompts

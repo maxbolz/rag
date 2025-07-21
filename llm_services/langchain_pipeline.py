@@ -1,168 +1,136 @@
 import os
-from typing import List, Dict, Any
+import logging
 from dotenv import load_dotenv
+from typing import List, Dict, Any
 from anthropic import Anthropic
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from clickhouse_services.clickhouse_dao import ClickhouseDao
-import logging
+from services.clickhouse.clickhouse_dao import ClickhouseDao
 from pydantic import SecretStr
+
+# === LangGraph imports ===
+from langgraph.graph import StateGraph, START
+from typing_extensions import TypedDict
 
 load_dotenv()
 
+# 1. Define the shared state for orchestration
+class State(TypedDict):
+    question: str
+    context: List[Document]
+    answer: str
+
+# 2. Step 1: retrieve relevant articles
+def retrieve(state: State) -> Dict[str, Any]:
+    # use your existing ClickHouse-based retriever
+    docs = state_app.clickhouse_dao.related_articles(state["question"], limit=state_app.max_articles)
+    # convert to LangChain Documents
+    documents = [
+        Document(
+            page_content=body,
+            metadata={
+                "url": url,
+                "title": title,
+                "publication_date": pub_date,
+                "similarity_score": score
+            }
+        )
+        for url, title, body, pub_date, score in docs
+    ]
+    return {"context": documents}
+
+# 3. Step 2: generate answer with Claude
+def generate(state: State) -> Dict[str, Any]:
+    # build context string
+    ctx = "\n\n".join(
+        f"Title: {doc.metadata['title']}\n"
+        f"Date: {doc.metadata['publication_date']}\n"
+        f"Content: {doc.page_content}"
+        for doc in state["context"]
+    )
+    prompt_str = state_app.rag_prompt.format(question=state["question"], context=ctx)
+    response = state_app.llm.invoke(prompt_str)
+    return {"answer": response.content}
+
 class RAGApplication:
-    def __init__(self):
-        # Initialize Anthropic client
+    def __init__(self, max_articles: int = 5):
+        # — your existing initialization —
+        self.max_articles = max_articles
         self.anthropic = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        
-        # Initialize LangChain ChatAnthropic
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
-            raise ValueError("ANTHROPIC_API_KEY environment variable is required")
-        
+            raise ValueError("ANTHROPIC_API_KEY is required")
+
         self.llm = ChatAnthropic(
-            model_name="claude-3-sonnet-20240229",
+            model_name="claude-3-5-sonnet-latest",
             api_key=SecretStr(api_key),
             temperature=0.1,
             timeout=60,
             stop=[]
         )
-        
-        # Initialize ClickHouse DAO
         self.clickhouse_dao = ClickhouseDao()
-        
-        # Define RAG prompt
         self.rag_prompt = PromptTemplate(
             input_variables=["question", "context"],
             template="""
             You are a helpful AI assistant that answers questions based on the provided context from Guardian articles.
-            
+
             Context from Guardian articles:
             {context}
-            
+
             Question: {question}
-            
+
             Please provide a comprehensive answer based on the context above. If the context doesn't contain enough information to answer the question, say so. Use the Guardian articles as your primary source of information.
-            
+
             Answer:"""
-        )
-    
-    def retrieve_relevant_articles(self, question: str, limit: int = 5) -> List[Document]:
-        """Retrieve relevant articles from ClickHouse vector database"""
-        try:
-            # Search for similar articles
-            results = self.clickhouse_dao.related_articles(question, limit)
-            
-            # Convert results to LangChain Documents
-            documents = []
-            for result in results:
-                # Assuming result structure: [url, title, body, publication_date, distance]
-                if len(result) >= 3:
-                    doc = Document(
-                        page_content=result[2],  # body content
-                        metadata={
-                            "url": result[0],
-                            "title": result[1],
-                            "publication_date": result[3] if len(result) > 3 else "",
-                            "similarity_score": result[4] if len(result) > 4 else 0
-                        }
                     )
-                    documents.append(doc)
-            
-            return documents
-        except Exception as e:
-            logging.error(f"Error retrieving articles: {e}")
-            return []
-    
-    def generate_answer(self, question: str, context_docs: List[Document]) -> str:
-        """Generate answer using Claude LLM"""
+
+        # 4. Build the LangGraph orchestration
+        builder = StateGraph(State).add_sequence([retrieve, generate])
+        builder.add_edge(START, "retrieve")
+        self.graph = builder.compile()
+
+    def answer_question(self, question: str) -> Dict[str, Any]:
+        """Invoke the orchestrated RAG graph in one call."""
         try:
-            # Prepare context from documents
-            context_content = "\n\n".join([
-                f"Title: {doc.metadata.get('title', 'Unknown')}\n"
-                f"Date: {doc.metadata.get('publication_date', 'Unknown')}\n"
-                f"Content: {doc.page_content}"
-                for doc in context_docs
-            ])
-            
-            # Create prompt with question and context
-            prompt = self.rag_prompt.format(
-                question=question,
-                context=context_content
-            )
-            
-            # Generate response using Claude
-            response = self.llm.invoke(prompt)
-            
-            return str(response.content)
-            
-        except Exception as e:
-            logging.error(f"Error generating answer: {e}")
-            return f"Sorry, I encountered an error while generating the answer: {str(e)}"
-    
-    def answer_question(self, question: str, max_articles: int = 5) -> Dict[str, Any]:
-        """Main RAG pipeline: retrieve relevant articles and generate answer"""
-        try:
-            # Step 1: Retrieve relevant articles
-            relevant_docs = self.retrieve_relevant_articles(question, max_articles)
-            
-            if not relevant_docs:
-                return {
-                    "answer": "I couldn't find any relevant articles to answer your question. Please try rephrasing your question.",
-                    "context": [],
-                    "question": question
-                }
-            
-            # Step 2: Generate answer using Claude
-            answer = self.generate_answer(question, relevant_docs)
-            
-            # Step 3: Prepare response
-            response = {
+            # run through retrieve → generate
+            result_state = self.graph.invoke({"question": question})
+            # unpack
+            answer = result_state["answer"]
+            docs: List[Document] = result_state["context"]
+
+            return {
+                "question": question,
                 "answer": answer,
+                "articles_used": len(docs),
                 "context": [
                     {
-                        "title": doc.metadata.get("title", "Unknown"),
-                        "url": doc.metadata.get("url", ""),
-                        "publication_date": doc.metadata.get("publication_date", ""),
-                        "similarity_score": doc.metadata.get("similarity_score", 0),
-                        "snippet": doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content
+                        "title": d.metadata["title"],
+                        "url": d.metadata["url"],
+                        "publication_date": d.metadata["publication_date"],
+                        "similarity_score": d.metadata["similarity_score"],
+                        "snippet": (d.page_content[:200] + "...") if len(d.page_content) > 200 else d.page_content
                     }
-                    for doc in relevant_docs
-                ],
-                "question": question,
-                "articles_used": len(relevant_docs)
+                    for d in docs
+                ]
             }
-            
-            return response
-            
         except Exception as e:
-            logging.error(f"Error in RAG pipeline: {e}")
+            logging.error(f"RAG pipeline failed: {e}")
             return {
-                "answer": f"Sorry, I encountered an error: {str(e)}",
-                "context": [],
                 "question": question,
-                "error": str(e)
+                "answer": f"Error: {e}",
+                "context": [],
+                "articles_used": 0
             }
 
-# Example usage
-def main():
-    # Initialize RAG application
-    rag_app = RAGApplication()
-    
-    # Example questions
-    questions = [
-        "What are the latest developments in climate change?",
-        "How is the economy performing?",
-        "What's happening in technology news?"
-    ]
-    
-    for question in questions:
-        print(f"\nQuestion: {question}")
-        result = rag_app.answer_question(question)
-        print(f"Answer: {result['answer']}")
-        print(f"Articles used: {result['articles_used']}")
-        print("-" * 50)
-
+# === Example usage ===
 if __name__ == "__main__":
-    main() 
+    state_app = RAGApplication(max_articles=5)
+    for q in [
+        "Give me the latest on news corp columnist Lucy Zelić.",
+    ]:
+        res = state_app.answer_question(q)
+        print(f"\nQuestion: {res['question']}")
+        print(f"Answer: {res['answer']}")
+        print(f"Articles used: {res['articles_used']}")
+        print("-" * 60)
