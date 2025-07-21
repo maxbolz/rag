@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from services.clickhouse.clickhouse_dao import ClickhouseDao
+from clickhouse_dao import ClickhouseDao
 import time
 
 app = FastAPI()
