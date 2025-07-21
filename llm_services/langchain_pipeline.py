@@ -41,7 +41,7 @@ def retrieve(state: State) -> Dict[str, Any]:
     return {"context": documents}
 
 # 3. Step 2: generate answer with Claude
-def generate(state: State) -> Dict[str, Any]:
+def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     # build context string
     ctx = "\n\n".join(
         f"Title: {doc.metadata['title']}\n"
@@ -49,8 +49,8 @@ def generate(state: State) -> Dict[str, Any]:
         f"Content: {doc.page_content}"
         for doc in state["context"]
     )
-    prompt_str = state_app.rag_prompt.format(question=state["question"], context=ctx)
-    response = state_app.llm.invoke(prompt_str)
+    prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
+    response = app.llm.invoke(prompt_str)
     return {"answer": response.content}
 
 class RAGApplication:
@@ -85,7 +85,10 @@ class RAGApplication:
                     )
 
         # 4. Build the LangGraph orchestration
-        builder = StateGraph(State).add_sequence([retrieve, generate])
+        builder = StateGraph(State).add_sequence([
+            retrieve,
+            lambda state: generate(state, self)
+        ])
         builder.add_edge(START, "retrieve")
         self.graph = builder.compile()
 
