@@ -7,8 +7,13 @@ from langgraph.graph import START, StateGraph
 from typing_extensions import List, TypedDict
 from clickhouse_services.clickhouse_dao import ClickhouseDao
 import requests    
+import getpass
+import os
 
+os.environ["LANGSMITH_TRACING"] = "true"
+os.environ["LANGSMITH_API_KEY"] = getpass.getpass()
 
+# langchain tracing
 
 class State(TypedDict):
     question: str
