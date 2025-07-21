@@ -8,4 +8,4 @@ langchain_pipeline = RAGApplication()
 
 @app.get("/answer-question")
 def run(query: str):
-    langchain_pipeline.answer_question(query)
+    return langchain_pipeline.answer_question(query)
