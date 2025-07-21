@@ -5,7 +5,6 @@ from langchain_controller import LangchainController
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 
-# --- Custom CSS ---
 st.markdown(f"""
 <style>
 /* Title gradient style */
@@ -80,19 +79,17 @@ h1 {{
 </style>
 """, unsafe_allow_html=True)
 
-# Instantiate controller
 controller = LangchainController()
 
-# Function to run FastAPI on port 8001
+
 def run_api():
     uvicorn.run(controller.app, host="0.0.0.0", port=8001, log_level="info")
 
-# Start FastAPI server in background thread (daemon so it exits with Streamlit)
+
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
 
-# --- Streamlit UI ---
-st.title("RAGuardian")  # <--- uses your custom CSS h1
+st.title("RAGuardian")
 
 user_input = st.text_input("Enter your question:")
 
