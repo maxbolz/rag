@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from llm_services.langchain_pipeline import RAGApplication
+from llm.langchain_pipeline import RAGApplication
 
 app = FastAPI()
 

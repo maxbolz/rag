@@ -15,11 +15,13 @@ from typing_extensions import TypedDict
 
 load_dotenv()
 
+
 # 1. Define the shared state for orchestration
 class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
+
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
@@ -40,6 +42,7 @@ def retrieve(state: State) -> Dict[str, Any]:
     ]
     return {"context": documents}
 
+
 # 3. Step 2: generate answer with Claude
 def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     # build context string
@@ -52,6 +55,7 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
     response = app.llm.invoke(prompt_str)
     return {"answer": response.content}
+
 
 class RAGApplication:
     def __init__(self, max_articles: int = 5):
@@ -82,7 +86,7 @@ class RAGApplication:
             Please provide a comprehensive answer based on the context above. If the context doesn't contain enough information to answer the question, say so. Use the Guardian articles as your primary source of information.
 
             Answer:"""
-                    )
+        )
 
         # 4. Build the LangGraph orchestration
         builder = StateGraph(State).add_sequence([
@@ -124,6 +128,7 @@ class RAGApplication:
                 "context": [],
                 "articles_used": 0
             }
+
 
 # === Example usage ===
 if __name__ == "__main__":
