@@ -12,7 +12,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-VectorEmbeds}
       - POSTGRES_USER=${POSTGRES_USER:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
-    ulimits:                                          # 🧠 Optional tuning
+    ulimits:                                          
       nofile:
         soft: 262144
         hard: 262144
@@ -27,8 +27,8 @@ services:
     ports:
       - 8000:8000
     environment:
-      - POSTGRES_HOST=localhost
-      - POSTGRES_PORT=5430
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
       - POSTGRES_DB=${POSTGRES_DB:-VectorEmbeds}
       - POSTGRES_USER=${POSTGRES_USER:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}

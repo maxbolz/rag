@@ -28,7 +28,7 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
             dbname=os.getenv("POSTGRES_DB", "VectorEmbeds"),
             user=os.getenv("POSTGRES_USER", "test"),
             password=os.getenv("POSTGRES_PASSWORD", "1234"),
-            host=os.getenv("POSTGRES_HOST", "10.0.100.77"),
+            host=os.getenv("POSTGRES_HOST", "localhost"),
             port=os.getenv("POSTGRES_PORT", 5430),
         )
 
