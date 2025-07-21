@@ -34,7 +34,7 @@ class PostgresDao:
                 dbname=os.getenv("POSTGRES_DB", "VectorEmbeds"),
                 user=os.getenv("POSTGRES_USER", "test"),
                 password=os.getenv("POSTGRES_PASSWORD", "1234"),
-                host=os.getenv("POSTGRES_HOST", "localhost"),
+                host="host.docker.internal",
                 port=os.getenv("POSTGRES_PORT", 5430)
             )
             logging.info("Connected to Postgres successfully.")
