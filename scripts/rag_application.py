@@ -5,7 +5,7 @@ from anthropic import Anthropic
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from clickhouse_services.clickhouse_dao import ClickhouseDao
+from services.clickhouse.clickhouse_dao import ClickhouseDao
 import logging
 from pydantic import SecretStr
 
@@ -22,7 +22,7 @@ class RAGApplication:
             raise ValueError("ANTHROPIC_API_KEY environment variable is required")
         
         self.llm = ChatAnthropic(
-            model_name="claude-3-sonnet-20240229",
+            model_name="claude-3-sonnet-latest",
             api_key=SecretStr(api_key),
             temperature=0.1,
             timeout=60,
