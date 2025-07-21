@@ -26,8 +26,8 @@ services:
       - clickhouse-network
   fastapi:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: services/clickhouse/Dockerfile
     container_name: fastapi-app
     depends_on:
       - clickhouse
