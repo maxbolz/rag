@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 
-def pull_docs(total_needed: int = 10000, page_size: int = 1):
+def pull_docs(total_needed: int = 1000, page_size: int = 1):
 
     load_dotenv()
     API_KEY = os.getenv("GUARDIAN_API_KEY")
@@ -72,5 +72,3 @@ def pull_docs(total_needed: int = 10000, page_size: int = 1):
     except Exception as e:
         logging.error(f"Pipeline failed: {e}")
         return False
-
-pull_docs()
