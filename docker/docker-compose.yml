@@ -32,6 +32,7 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-VectorEmbeds}
       - POSTGRES_USER=${POSTGRES_USER:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
+      - GUARDIAN_API_KEY=${GUARDIAN_API_KEY}
     volumes:
       - ../scripts:/app/scripts
       - ../requirements.txt:/app/requirements.txt
