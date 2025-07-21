@@ -34,7 +34,7 @@ class PostgresDao:
                 dbname=os.getenv("POSTGRES_DB", "VectorEmbeds"),
                 user=os.getenv("POSTGRES_USER", "test"),
                 password=os.getenv("POSTGRES_PASSWORD", "1234"),
-                host=os.getenv("POSTGRES_HOST", "10.0.100.77"),
+                host=os.getenv("POSTGRES_HOST", "localhost"),
                 port=os.getenv("POSTGRES_PORT", 5430)
             )
             logging.info("Connected to Postgres successfully.")
@@ -48,11 +48,14 @@ class PostgresDao:
 
     def related_articles(self, query: str, limit: int = 5):
         try:
-            self.connect_postgres()
+            if not self.connect_postgres():
+                raise HTTPException(500, "Failed to connect to database")
             conn = self.client
+            if conn is None:
+                raise HTTPException(500, "Database connection is None")
             conn.autocommit = True
             register_vector(conn)
-            cur = self.client.cursor()
+            cur = conn.cursor()
             emb = self.model.encode(query).tolist()
             cur.execute(
                 """

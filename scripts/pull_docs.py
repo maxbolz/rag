@@ -1,5 +1,5 @@
 import os
-import psycopg2
+import psycopg
 import logging
 import requests
 from sentence_transformers import SentenceTransformer
@@ -14,11 +14,11 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
     all_articles = []
     pages = total_needed // page_size
 
-    conn = psycopg2.connect(
+    conn = psycopg.connect(
             dbname=os.getenv("POSTGRES_DB", "VectorEmbeds"),
             user=os.getenv("POSTGRES_USER", "test"),
             password=os.getenv("POSTGRES_PASSWORD", "1234"),
-            host=os.getenv("POSTGRES_HOST", "localhost"),
+            host="host.docker.internal",
             port=os.getenv("POSTGRES_PORT", 5430),
         )
 
@@ -72,3 +72,6 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
     except Exception as e:
         logging.error(f"Pipeline failed: {e}")
         return False
+
+
+pull_docs(10)
