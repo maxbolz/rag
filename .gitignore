@@ -7,5 +7,5 @@ __pycache__
 services/clickhouse/__pycache__/
 services/clickhouse/scripts/__pycache__/
 scripts/.idea
-clickhouse_services/data/
-clickhouse_services/logs/
+services/clickhouse/data/
+services/clickhouse/logs/

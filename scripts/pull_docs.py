@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
 
-def pull_docs(total_needed: int = 1000, page_size: int = 1):
+def pull_docs(total_needed: int = 10000, page_size: int = 1):
 
     load_dotenv()
     API_KEY = os.getenv("GUARDIAN_API_KEY")
@@ -29,7 +29,7 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
                 "api-key": API_KEY,
                 "order-by": "newest",
                 "page-size": page_size,
-                "page": page + 17777,
+                "page": page,
                 "show-fields": "all",
             }
             resp = requests.get(BASE, params=params)
@@ -72,3 +72,5 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
     except Exception as e:
         logging.error(f"Pipeline failed: {e}")
         return False
+
+pull_docs()
