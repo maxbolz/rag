@@ -29,7 +29,7 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
                 "api-key": API_KEY,
                 "order-by": "newest",
                 "page-size": page_size,
-                "page": page + 17777,
+                "page": page,
                 "show-fields": "all",
             }
             resp = requests.get(BASE, params=params)
