@@ -24,7 +24,6 @@ class State(TypedDict):
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
     # use your existing ClickHouse-based retriever
-    # docs = state_app.clickhouse_dao.related_articles(state["question"], limit=state_app.max_articles)
     docs = requests.get(f"http://localhost:8000/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
