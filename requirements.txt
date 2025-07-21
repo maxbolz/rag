@@ -57,3 +57,6 @@ transformers~=4.53.2
 starlette~=0.47.1
 psycopg~=3.2.9
 pgvector~=0.4.1
+streamlit~=1.47.0
+tornado~=6.5.1
+pandas~=2.3.1
