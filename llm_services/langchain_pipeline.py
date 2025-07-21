@@ -6,8 +6,8 @@ from anthropic import Anthropic
 from langchain_anthropic import ChatAnthropic
 from langchain.schema import Document
 from langchain.prompts import PromptTemplate
-from services.clickhouse.clickhouse_dao import ClickhouseDao
 from pydantic import SecretStr
+import requests
 
 # === LangGraph imports ===
 from langgraph.graph import StateGraph, START
@@ -24,7 +24,8 @@ class State(TypedDict):
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
     # use your existing ClickHouse-based retriever
-    docs = state_app.clickhouse_dao.related_articles(state["question"], limit=state_app.max_articles)
+    # docs = state_app.clickhouse_dao.related_articles(state["question"], limit=state_app.max_articles)
+    docs = requests.get(f"http://localhost:8000/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
@@ -69,7 +70,6 @@ class RAGApplication:
             timeout=60,
             stop=[]
         )
-        self.clickhouse_dao = ClickhouseDao()
         self.rag_prompt = PromptTemplate(
             input_variables=["question", "context"],
             template="""
