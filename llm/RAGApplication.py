@@ -134,7 +134,7 @@ class RAGApplication:
 if __name__ == "__main__":
     state_app = RAGApplication(max_articles=5)
     for q in [
-        "Give me the latest on news corp columnist Lucy Zelić.",
+        "Give me the latest on pilot David Stephens.",
     ]:
         res = state_app.answer_question(q)
         print(f"\nQuestion: {res['question']}")
