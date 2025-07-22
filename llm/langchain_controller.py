@@ -1,5 +1,5 @@
+import time
 from fastapi import FastAPI
-
 from langchain_pipeline import RAGApplication
 
 
@@ -15,4 +15,7 @@ class LangchainController:
             return self.answer_question(query)
 
     def answer_question(self, query: str):
-        return self.pipeline.answer_question(query)
+        start_time = time.time()
+        answer = self.pipeline.answer_question(query)
+        end_time = time.time()
+        return answer, round(end_time - start_time, 2)

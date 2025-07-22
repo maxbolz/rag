@@ -2,8 +2,10 @@ import threading
 import uvicorn
 import streamlit as st
 from langchain_controller import LangchainController
+import time as _time  # for animation delay
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
+LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
 
 st.markdown(f"""
 <style>
@@ -23,7 +25,7 @@ h1 {{
 .chat-container {{
     display: flex;
     align-items: flex-start;
-    gap: 1.5rem;  /* <-- spacing between logo and bubble */
+    gap: 1.5rem;
     margin-top: 2rem;
     max-width: 90%;
     margin-left: auto;
@@ -76,37 +78,142 @@ h1 {{
     text-transform: uppercase;
     letter-spacing: 1px;
 }}
+
+/* Top bar background */
+[data-testid="stToolbar"] {{
+    background: linear-gradient(135deg, #052962, #1558aa) !important;
+}}
+
+/* Top bar text color */
+[data-testid="stToolbar"] * {{
+    color: white !important;
+}}
+
+/* Animations for fade and move */
+@keyframes fadeMoveDown {{
+  0% {{opacity: 1; transform: translateY(0);}}
+  100% {{opacity: 0; transform: translateY(20px);}}
+}}
+
+@keyframes fadeMoveUp {{
+  0% {{opacity: 0; transform: translateY(20px);}}
+  100% {{opacity: 1; transform: translateY(0);}}
+}}
+
+.loading-fadeout {{
+  animation: fadeMoveDown 0.5s forwards;
+}}
+
+.answer-fadein {{
+  animation: fadeMoveUp 0.5s forwards;
+}}
+
+/* Align input and button vertically in columns */
+.stApp > div[data-testid="column"]:nth-child(1) {{
+    display: flex;
+    align-items: center;
+}}
+.stApp > div[data-testid="column"]:nth-child(2) {{
+    display: flex;
+    align-items: center;
+}}
+
+/* Input box styling */
+.stTextInput > div > div > input {{
+  height: 38px;
+  padding: 8px 12px;
+  font-size: 16px;
+  box-sizing: border-box;
+  border-radius: 6px;
+  border: 1.5px solid #ccc;
+  transition: border 0.3s ease;
+}}
+
+/* Gradient border on focus */
+.stTextInput > div > div > input:focus {{
+  outline: none;
+  border-image-slice: 1;
+  border-width: 2px;
+  border-image-source: linear-gradient(135deg, #052962, #1558aa);
+  border-image-outset: 0;
+}}
+
+/* Button styling */
+.stButton > button {{
+  height: 38px;
+  margin-top: 0;
+  font-size: 16px;
+  padding: 0 25px;
+  background: linear-gradient(135deg, #052962, #1558aa);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}}
+
+.stButton > button:hover {{
+  background: linear-gradient(135deg, #1558aa, #052962);
+}}
 </style>
 """, unsafe_allow_html=True)
 
 controller = LangchainController()
 
-
 def run_api():
     uvicorn.run(controller.app, host="0.0.0.0", port=8001, log_level="info")
-
 
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
 
 st.title("RAGuardian")
 
-user_input = st.text_input("Enter your question:")
+col1, col2 = st.columns([5, 1])
+with col1:
+    user_input = st.text_input("", placeholder="Enter your question", key="user_input")
+with col2:
+    run_button = st.button("Run")
 
-if st.button("Run"):
+if run_button:
     if user_input:
-        result = controller.answer_question(user_input)
-        answer = result.get("answer", "")
-        articles = result.get("articles_used", 0)
+        placeholder = st.empty()
 
-        st.markdown(f"""
-        <div class="chat-container">
-            <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-            <div class="result-bubble">
-                {answer}
+        # Show loading UI
+        placeholder.markdown(f'''
+            <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
+                <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
+                <div class="label">RAGuardian is thinking...</div>
             </div>
-        </div>
-        <div class="label">Articles Used: {articles}</div>
-        """, unsafe_allow_html=True)
+        ''', unsafe_allow_html=True)
+
+        # Run your question through the AI pipeline
+        result = controller.answer_question(user_input)
+
+        # Trigger fadeout animation on loading
+        placeholder.markdown(f'''
+            <div id="loading" class="loading-fadeout" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
+                <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
+                <div class="label">RAGuardian is thinking...</div>
+            </div>
+        ''', unsafe_allow_html=True)
+
+        _time.sleep(0.1)
+
+        response = result[0]
+        time_taken = result[1]
+        answer = response.get("answer", "")
+        articles = response.get("articles_used", 0)
+
+        # Show the answer with fade-in animation
+        placeholder.markdown(f'''
+            <div class="chat-container answer-fadein" style="opacity:0;">
+                <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
+                <div class="result-bubble">
+                    {answer}
+                </div>
+            </div>
+            <div class="label answer-fadein">Articles Used: {articles}</div>
+            <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
+        ''', unsafe_allow_html=True)
     else:
         st.warning("Enter something before running.")
