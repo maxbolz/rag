@@ -51,6 +51,7 @@ Activate Venv for Windows: `.venv/Scripts/activate`
 Running
 --
 Mac: In working directory, run `chmod +x run.sh && ./run.sh`
+
 Windows: Open `run.bat`
 
 Pulling New Documents
