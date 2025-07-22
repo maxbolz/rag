@@ -38,7 +38,7 @@ Getting Set Up
     docker-compose -f docker/docker-compose.yml up -d
 
 
-VENV STUFF
+Setting Up Virtual Environment
 --
 Create a Virtual Environment (If you haven't already): `python -m venv .venv`
 
@@ -48,8 +48,12 @@ Activate Venv for Windows: `.venv/Scripts/activate`
 
 `pip install requirements.txt`
 
+Running
+--
+Mac: In working directory, run `chmod +x run.sh && ./run.sh`
+Windows: Open `run.bat`
 
-RUNNING
+Pulling New Documents
 --
 `python src/pull_docs.py`
 =======
