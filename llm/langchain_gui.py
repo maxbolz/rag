@@ -141,7 +141,7 @@ h1 {{
 /* Button styling */
 .stButton > button {{
   height: 38px;
-  margin-top: 0;
+  margin-top: 0 !important;
   font-size: 16px;
   padding: 0 25px;
   background: linear-gradient(135deg, #052962, #1558aa);
@@ -152,8 +152,14 @@ h1 {{
   transition: background 0.3s ease;
 }}
 
-.stButton > button:hover {{
-  background: linear-gradient(135deg, #1558aa, #052962);
+input[type="text"] {{
+  autocomplete: off !important;
+  /* For Firefox */
+  -moz-user-modify: read-write !important;
+}}
+
+[data-testid="stDecoration"] {{
+    display: none !important;
 }}
 </style>
 """, unsafe_allow_html=True)
@@ -168,9 +174,9 @@ api_thread.start()
 
 st.title("RAGuardian")
 
-col1, col2 = st.columns([5, 1])
+col1, col2 = st.columns([7, 1])
 with col1:
-    user_input = st.text_input("", placeholder="Enter your question", key="user_input")
+    user_input = st.text_input(" ", placeholder="Enter your question", key="user_input", label_visibility="collapsed")
 with col2:
     run_button = st.button("Run")
 
