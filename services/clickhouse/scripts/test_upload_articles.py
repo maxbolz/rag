@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from clickhouse_services.clickhouse_controller import app
+from services.clickhouse.clickhouse_controller import app
 
 # Create test client
 client = TestClient(app)

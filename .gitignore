@@ -4,6 +4,8 @@
 scripts/.idea
 .idea
 __pycache__
-clickhouse_services/__pycache__/
-clickhouse_services/scripts/__pycache__/
+services/clickhouse/__pycache__/
+services/clickhouse/scripts/__pycache__/
 scripts/.idea
+services/clickhouse/data/
+services/clickhouse/logs/

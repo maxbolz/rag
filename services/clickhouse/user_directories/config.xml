@@ -1,0 +1,45 @@
+<clickhouse>
+    <!-- Listen on all interfaces (allows network access) -->
+    <listen_host>0.0.0.0</listen_host>
+    
+    <!-- HTTP port -->
+    <http_port>8123</http_port>
+    
+    <!-- TCP port for native client -->
+    <tcp_port>9000</tcp_port>
+    
+    <!-- Data directory -->
+    <path>/var/lib/clickhouse/</path>
+    
+    <!-- Temporary data directory -->
+    <tmp_path>/var/lib/clickhouse/tmp/</tmp_path>
+    
+    <!-- User files directory -->
+    <user_files_path>/var/lib/clickhouse/user_directories/</user_files_path>
+    
+    <!-- Format schemas directory -->
+    <format_schema_path>/var/lib/clickhouse/format_schemas/</format_schema_path>
+    
+    <!-- Log configuration -->
+    <logger>
+        <level>information</level>
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+    </logger>
+    
+    <!-- Query log -->
+    <query_log>
+        <database>system</database>
+        <table>query_log</table>
+    </query_log>
+    
+    <!-- Allow connections from any host -->
+    <access_management>1</access_management>
+    
+    <!-- Memory settings -->
+    <max_memory_usage>10000000000</max_memory_usage>
+    <max_memory_usage_for_user>10000000000</max_memory_usage_for_user>
+    
+    <!-- Timezone -->
+    <timezone>UTC</timezone>
+</clickhouse>
