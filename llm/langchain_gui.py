@@ -2,7 +2,6 @@ import threading
 import uvicorn
 import streamlit as st
 from langchain_controller import LangchainController
-import time as _time  # for animation delay
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
@@ -202,8 +201,6 @@ if run_button:
                 <div class="label">RAGuardian is thinking...</div>
             </div>
         ''', unsafe_allow_html=True)
-
-        _time.sleep(0.1)
 
         response = result[0]
         time_taken = result[1]
