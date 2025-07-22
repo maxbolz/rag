@@ -151,10 +151,9 @@ h1 {{
   transition: background 0.3s ease;
 }}
 
-input[type="text"] {{
-  autocomplete: off !important;
-  /* For Firefox */
-  -moz-user-modify: read-write !important;
+/* Hide 'Press Enter to Apply' in Streamlit */
+span[data-testid="stTextInputInstructions"] {{
+    display: none !important;
 }}
 
 [data-testid="stDecoration"] {{
