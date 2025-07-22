@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 import os
 import logging
 from dotenv import load_dotenv
+from scripts.pull_docs import pull_docs
 
 # Configure logging
 logging.basicConfig(
@@ -17,7 +18,6 @@ logging.basicConfig(
 )
 
 load_dotenv()
-
 
 class PostgresDao:
     def __init__(self):
@@ -31,10 +31,10 @@ class PostgresDao:
         """Connect to Postgres database"""
         try:
             self.client = psycopg.connect(
-                dbname=os.getenv("POSTGRES_DB", "guardian"),
-                user=os.getenv("POSTGRES_USER", "postgres"),
-                password=os.getenv("POSTGRES_PASSWORD", ""),
-                host=os.getenv("POSTGRES_HOST", "localhost"),
+                dbname=os.getenv("POSTGRES_DB", "VectorEmbeds"),
+                user=os.getenv("POSTGRES_USER", "test"),
+                password=os.getenv("POSTGRES_PASSWORD", "1234"),
+                host=os.getenv("POSTGRES_HOST", "db"),
                 port=os.getenv("POSTGRES_PORT", 5432)
             )
             logging.info("Connected to Postgres successfully.")
@@ -48,11 +48,14 @@ class PostgresDao:
 
     def related_articles(self, query: str, limit: int = 5):
         try:
-            self.connect_postgres()
+            if not self.connect_postgres():
+                raise HTTPException(500, "Failed to connect to database")
             conn = self.client
+            if conn is None:
+                raise HTTPException(500, "Database connection is None")
             conn.autocommit = True
             register_vector(conn)
-            cur = self.client.cursor()
+            cur = conn.cursor()
             emb = self.model.encode(query).tolist()
             cur.execute(
                 """

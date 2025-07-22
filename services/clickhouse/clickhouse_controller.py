@@ -7,6 +7,7 @@ app = FastAPI()
 # Create controller instance
 clickhouse_dao = ClickhouseDao()
 
+
 @app.get("/related-articles")
 async def related_articles(query: str):
     start_time = time.time()
