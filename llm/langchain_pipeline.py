@@ -94,7 +94,7 @@ class RAGApplication:
             lambda state: generate(state, self)
         ])
         builder.add_edge(START, "retrieve")
-        self.graph = builder.compile()
+        self.graph = builder.compile(name = "main_rag_pipeline")
 
     def answer_question(self, question: str) -> Dict[str, Any]:
         """Invoke the orchestrated RAG graph in one call."""
