@@ -6,7 +6,6 @@ from sentence_transformers import SentenceTransformer
 import os
 import logging
 from dotenv import load_dotenv
-from scripts.pull_docs import pull_docs
 
 # Configure logging
 logging.basicConfig(
@@ -18,6 +17,7 @@ logging.basicConfig(
 )
 
 load_dotenv()
+
 
 class PostgresDao:
     def __init__(self):
