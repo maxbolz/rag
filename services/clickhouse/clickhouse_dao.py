@@ -7,7 +7,6 @@ from pydantic import BaseModel
 from datetime import datetime
 from dotenv import load_dotenv
 
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -19,11 +18,13 @@ logging.basicConfig(
 
 load_dotenv()
 
+
 class Article(BaseModel):
     url: str
     title: str
     body: str
     publication_date: datetime
+
 
 class ClickhouseDao:
     def __init__(self):
@@ -52,7 +53,7 @@ class ClickhouseDao:
             print(f"Failed to connects to ClickHouse: {e}")
             self.client = None
             return False
-    
+
     def fetch_guardian_articles(self, page_size=10, total_needed=50):
         """Fetch articles from Guardian API"""
         all_articles = []
@@ -96,7 +97,7 @@ class ClickhouseDao:
             rows.append(row)
         logging.info("Embeddings generated.")
         return rows
-    
+
     def upload_to_clickhouse(self, articles_with_embeddings):
         """Debug version to see data structure"""
         if self.client is None:
@@ -128,10 +129,10 @@ class ClickhouseDao:
         if self.client is None:
             print("No ClickHouse connection available")
             return []
-            
+
         # Generate embedding for the query
         query_embedding = self.model.encode(query).tolist()
-        
+
         # Search query using cosine similarity
         search_query = f"""
         SELECT 
@@ -144,14 +145,14 @@ class ClickhouseDao:
         ORDER BY distance ASC
         LIMIT {limit}
         """
-        
+
         try:
             result = self.client.query(search_query)
             return result.result_rows
         except Exception as e:
             print(f"Search failed: {e}")
             return []
-        
+
     def upload_articles(self):
         """Run the complete pipeline to fetch, vectorize and upload Guardian articles"""
         logging.info("Starting Guardian article vectorization pipeline...")
@@ -162,7 +163,7 @@ class ClickhouseDao:
             if success:
                 logging.info("Pipeline completed successfully")
                 return True
-            return False   
+            return False
         except Exception as e:
             logging.error(f"Pipeline failed: {e}")
             return False
