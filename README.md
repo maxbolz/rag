@@ -56,8 +56,26 @@ Windows: Open `run.bat`
 
 Pulling New Documents
 --
-`python src/pull_docs.py`
-=======
 
 To reach clickhouse endpoints:
 python -m clickhouse_services.scripts.[name of script]
+
+
+To reach postgres endpoints:
+--
+
+If you're running the server and database entirely on your own, run:
+1. `uvicorn postgres_services.postgres_controller:app --reload`
+
+If you're hosting the shared database, run:
+1. `cd docker`
+2. `docker compose up --build` (This loads up the app with uvicorn at 0.0.0.0 port 8000)
+
+To POST articles to PG Database:
+`curl -X POST http://localhost:8000/upload-articles` will upload 10 unique Guardian articles 
+- If the DB is hosted from someone else, replace <<localhost>> with their IP address
+
+To GET articles from the PG Database:
+- `curl http://localhost:8000/related-articles?query=<< your query as a URL-encoded string >>`
+- EX: `curl http://localhost:8000/related-articles?query=whats%20trump%20doing`
+- If the DB is hosted from someone else, replace <<localhost>> with their IP address
