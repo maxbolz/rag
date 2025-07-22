@@ -109,14 +109,14 @@ class Pipeline2Application:
             # Only generate step, no retrieve
             builder.add_node("generate", lambda state: generate(state, self))
             builder.add_edge(START, "generate")
-            self.graph = builder.compile(name="direct")
+            self.graph = builder.compile(name="direct_pipeline")
         else:
             builder.add_sequence([
                 retrieve,
                 lambda state: generate(state, self)
             ])
             builder.add_edge(START, "retrieve")
-            self.graph = builder.compile(name="rag")
+            self.graph = builder.compile(name="rag_pipeline")
 
     def answer_question(self, question: str) -> Dict[str, Any]:
         try:
