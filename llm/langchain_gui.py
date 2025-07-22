@@ -125,16 +125,19 @@ h1 {{
   box-sizing: border-box;
   border-radius: 6px;
   border: 1.5px solid #ccc;
-  transition: border 0.3s ease;
+  transition: border 0.1s ease;
 }}
 
-/* Gradient border on focus */
 .stTextInput > div > div > input:focus {{
   outline: none;
-  border-image-slice: 1;
-  border-width: 2px;
-  border-image-source: linear-gradient(135deg, #052962, #1558aa);
-  border-image-outset: 0;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  background-image: linear-gradient(white, white), linear-gradient(135deg, #052962, #1558aa);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  border: 3px solid transparent;
 }}
 
 /* Button styling */
