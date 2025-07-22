@@ -22,7 +22,6 @@ langchain-anthropic
 beautifulsoup4~=4.13.4
 anthropic~=0.58.2
 
-numpy~=2.0.2
 pillow~=11.3.0
 pip~=22.3.1
 attrs~=25.3.0
@@ -34,11 +33,7 @@ PyYAML~=6.0.2
 setuptools~=65.5.1
 pytz~=2025.2
 regex~=2024.11.6
-scipy~=1.13.1
 threadpoolctl~=3.6.0
-torch~=2.7.1
-mpmath~=1.3.0
-sympy~=1.14.0
 filelock~=3.18.0
 tqdm~=4.67.1
 packaging~=25.0
@@ -52,7 +47,6 @@ yarl~=1.20.1
 MarkupSafe~=3.0.2
 joblib~=1.5.1
 certifi~=2025.7.14
-scikit-learn~=1.6.1
 idna~=3.10
 tokenizers~=0.21.2
 safetensors~=0.5.3

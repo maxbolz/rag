@@ -46,7 +46,7 @@ Activate Venv for MacOS: `source .venv/bin/activate`
 
 Activate Venv for Windows: `.venv/Scripts/activate`
 
-`pip install requirements.txt`
+`pip install -r requirements.txt`
 
 Running
 --
