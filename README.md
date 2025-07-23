@@ -69,7 +69,7 @@ If you're running the server and database entirely on your own, run:
 
 If you're hosting the shared database, run:
 1. `cd docker`
-2. `docker compose up --build` (This loads up the app with uvicorn at 0.0.0.0 port 8000)
+2. `docker compose --env-file ../.env up` (This loads up the app with uvicorn at 0.0.0.0 port 8000)
 
 To POST articles to PG Database:
 `curl -X POST http://localhost:8000/upload-articles` will upload 10 unique Guardian articles 
