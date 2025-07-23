@@ -8,7 +8,6 @@ from typing import List, Any, Optional
 from langchain_core.runnables import RunnableLambda
 from langchain_core.runnables.config import RunnableConfig
 
-app = FastAPI()
 # Pydantic model for request body validation
 class BatchQuestionRequest(BaseModel):
     query: str = Field(..., description="The question to ask")
@@ -22,8 +21,6 @@ class MultiBatchRequest(BaseModel):
     max_workers: Optional[int] = Field(2, description="Maximum number of concurrent workers", ge=1, le=10)
     run_id: Optional[str] = Field("multi-batch-run", description="Unique identifier for this batch run")
 
-
-
 class LangchainController:
     def __init__(self):
         self.app = FastAPI()
@@ -31,7 +28,7 @@ class LangchainController:
         self._register_routes()
 
     def _register_routes(self):
-        @self.app.post("/answer-question-batch")
+        @self.app.get("/answer-question-batch")
         async def answer_question_batch(request: BatchQuestionRequest):
             """
             Process a batch of identical questions asynchronously.
@@ -84,33 +81,38 @@ class LangchainController:
                     "run_id": request.run_id
                 }
             
-        @self.app.post("/answer-question")
-        def answer_question(query):
+        @self.app.get("/answer-question")
+        def answer_question(query: str):  # Fixed: Added proper request parameter
             """
-            Process multiple different questions asynchronously.
+            Process a single question.
             
             Args:
-                request: JSON body containing list of queries, max_workers, and run_id
+                request: JSON body containing the query
                 
             Returns:
-                JSON response with answers, timing, and metadata for each query
+                JSON response with answer, timing, and metadata
             """
-            # Initialize async pipeline
-            
             # Track timing
             start_time = time.time()
             
-            # Run batch processing with different queries
+            # Run single question processing
             answer = self.pipeline.answer_question(query)
             
             end_time = time.time()
             total_duration = end_time - start_time
             
-            # Pair queries with their answers
-            
-            return answer, total_duration
+            return {
+                "status": "success",
+                "query": query,
+                "answer": answer,
+                "total_duration": total_duration,
+                "metadata": {
+                    "start_time": start_time,
+                    "end_time": end_time
+                }
+            }
         
-        @self.app.post("/answer-questions-multi-batch")
+        @self.app.get("/answer-questions-multi-batch")
         async def answer_questions_multi_batch(request: MultiBatchRequest):
             """
             Process multiple different questions asynchronously.
@@ -167,3 +169,6 @@ class LangchainController:
                     "max_workers": request.max_workers,
                     "run_id": request.run_id
                 }
+
+controller = LangchainController()
+app = controller.app

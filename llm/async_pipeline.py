@@ -2,7 +2,7 @@ import asyncio
 import time
 import sys
 import os
-from typing import List, Any
+from typing import List, Any, Optional
 from langchain_core.runnables import RunnableLambda
 from langchain_core.runnables.config import RunnableConfig
 
@@ -41,9 +41,10 @@ class AsyncPipeline:
 
 
 async def main():
-    pipeline = AsyncPipeline(2, "test-run-1")
-    questions = ["What are the latest protests in America?" for _ in range(10)]
-    await pipeline.run_batch(questions)
+    pipeline = AsyncPipeline(2, "test-run-sid")
+    questions = ["What are the latest protests in America?" for _ in range(3)]
+    ans = await pipeline.run_batch(questions)
+    print(ans)
 
 if __name__ == "__main__":
     asyncio.run(main())
