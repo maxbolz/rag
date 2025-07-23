@@ -20,7 +20,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: postgres/Dockerfile
     container_name: rag-app
     depends_on:
       - db
