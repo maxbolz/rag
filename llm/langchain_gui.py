@@ -216,8 +216,9 @@ if run_button:
         ''', unsafe_allow_html=True)
 
         response = result
-        time_taken = response['metadata']['start_time']
-        answer = response.get("answer", "")
+        time_taken = response.get('total_duration')
+        answer = response.get("answer").get("answer", "")
+        context = response.get("answer").get("context", [])
 
         placeholder.markdown(f'''
             <div class="chat-container answer-fadein" style="opacity:0;">
@@ -230,17 +231,17 @@ if run_button:
             <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
         ''', unsafe_allow_html=True)
 
-        # context_html = """
-        # <div class="context-box">
-        #     <div class="label">Context</div>
-        #     <br />
-        # """
-        # for article in context:
-        #     title = article.get("title", "Untitled")
-        #     url = article.get("url", "#")
-        #     context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+        context_html = """
+        <div class="context-box">
+            <div class="label">Context</div>
+            <br />
+        """
+        for article in context:
+            title = article.get("title", "Untitled")
+            url = article.get("url", "#")
+            context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
 
-        # context_html += "</div>"
-        # st.markdown(context_html, unsafe_allow_html=True)
+        context_html += "</div>"
+        st.markdown(context_html, unsafe_allow_html=True)
     else:
         st.warning("Enter something before running.")
