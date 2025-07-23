@@ -19,8 +19,8 @@ services:
 
   app:
     build:
-      context: ..
-      dockerfile: postgres/Dockerfile
+      context: ../../
+      dockerfile: services/postgres/Dockerfile
     container_name: rag-app
     depends_on:
       - db
@@ -34,10 +34,10 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
       - GUARDIAN_API_KEY=${GUARDIAN_API_KEY}
     volumes:
-      - ../scripts:/app/scripts
-      - ../.env:/app/.env
-      - ../requirements.txt:/app/requirements.txt
-      - ../services/postgres:/app/services/postgres
+      - ../../scripts:/app/scripts
+      - ../../.env:/app/.env
+      - ../../requirements.txt:/app/requirements.txt
+      - ../../services/postgres:/app/services/postgres
     working_dir: /app
     command: ["uvicorn", "services.postgres.postgres_controller:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     restart: unless-stopped
