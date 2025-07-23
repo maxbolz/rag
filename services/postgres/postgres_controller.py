@@ -1,6 +1,6 @@
 import time
 from fastapi import FastAPI
-from postgres_services.postgres_dao import PostgresDao
+from services.postgres.postgres_dao import PostgresDao
 from scripts.pull_docs import pull_docs
 import logging
 
