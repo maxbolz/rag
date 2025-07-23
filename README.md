@@ -1,98 +1,81 @@
 ```
-`7MM"""Mq.        db       .g8"""bgd  
-  MM   `MM.      ;MM:    .dP'     `M  
-  MM   ,M9      ,V^MM.   dM'       `  
-  MMmmdM9      ,M  `MM   MM           
-  MM  YM.      AbmmmqMA  MM.    `7MMF'
-  MM   `Mb.   A'     VML `Mb.     MM  
-.JMML. .JMM..AMA.   .AMMA. `"bmmmdPY  
+░█████████     ░███      ░██████     ░███████   ░████████              
+░██     ░██   ░██░██    ░██   ░██    ░██   ░██  ░██    ░██             
+░██     ░██  ░██  ░██  ░██           ░██    ░██ ░██    ░██   ░███████  
+░█████████  ░█████████ ░██  █████    ░██    ░██ ░████████   ░██        
+░██   ░██   ░██    ░██ ░██     ██    ░██    ░██ ░██     ░██  ░███████  
+░██    ░██  ░██    ░██  ░██  ░███    ░██   ░██  ░██     ░██        ░██ 
+░██     ░██ ░██    ░██   ░█████░█    ░███████   ░█████████   ░███████  
 ```
 
-Getting Set Up
----
-1. Get an API Key from Guardian delivered to your email by requesting one from https://bonobo.capi.gutools.co.uk/register/developer.
+# Usage
 
-2. Create a .env file at the project root (`/rag/`) that contains `GUARDIAN_API_KEY="<<your-guardian-api-key>>"`
+This repository can be used to measure the metrics of various vector databases.
 
-3. Install psql & remember the login credentials you create (probably username "postgres", and password something easy like "pass" or "root") 
+# Setup
 
-    Create a PSQL Database on localhost post 5432 named "guardian" by running a psql shell with `psql -U postgres -h localhost -p 5432` 
+1. Get a Guardian API key [here](https://bonobo.capi.gutools.co.uk/register/developer).
 
-    In the PSQL command shell, run `CREATE DATABASE guardian;`. You should see it spit back out `CREATE DATABASE`. 
+2. Create a `.env` file at the project root in the same directory as the `.git` folder with the following fields:
 
-    From the PSQL command shell, connect to the new db with `\c guardian`
+```
+# PSQL CREDENTIALS
+POSTGRES_DB="guardian"
+POSTGRES_USER="postgres"
+POSTGRES_PASSWORD="<your-password>"
+POSTGRES_HOST="localhost"
+POSTGRES_PORT=5432
 
-    In the PSQL command shell, run:
-    ```
-    CREATE EXTENSION vector;
+GUARDIAN_API_KEY="<your-key>"
+```
 
-    CREATE TABLE articles (
-      url TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
-      body TEXT NOT NULL,
-      publication_date TIMESTAMPTZ NOT NULL,
-      vector vector(384)
-    );
+3. Install PostgreSQL; ensure you **write down your login somewhere safe**.
 
-    ```
-    - If you're on windows, you'll probably need to install pgvector in order to allow the vector type in your DB.
-      Follow this guide- https://stackoverflow.com/questions/76678804/unable-to-install-pgvector-extension-for-postgresql-windows
-      
+4. Create a PostgreSQL database on `localhost:5432` named `guardian` by running `psql -U postgres -h localhost -p 5432`.
 
-4. Add your psql db credentials to your .env
-      ```
-      # PSQL CREDENTIALS
-      POSTGRES_DB="guardian"
-      POSTGRES_USER="postgres"
-      POSTGRES_PASSWORD="<<your-password>>"
-      POSTGRES_HOST="localhost"
-      POSTGRES_PORT=5432
-      
-      GUARDIAN_API_KEY=""
-      ```
-5. Run docker for Postgres database
-    cd rag 
-    docker-compose -f docker/docker-compose.yml up -d
+5. In pgAdmin, run `CREATE DATABASE guardian;`.
 
+6. Connect to the database with `\c guardian` in your Powershell.
 
-Setting Up Virtual Environment
---
-Create a Virtual Environment (If you haven't already): `python -m venv .venv`
+7. Run Docker for PostgreSQL using `docker-compose -f docker/docker-compose.yml up -d`
 
-Activate Venv for MacOS: `source .venv/bin/activate`
+8. Install the project requirements using `pip install requirements.txt`; if you do not have a virtual environment set up, do that first!
 
-Activate Venv for Windows: `.venv/Scripts/activate`
+# Running
 
-`pip install requirements.txt`
+## Mac
 
-Running
---
-Mac: In working directory, run `chmod +x run.sh && ./run.sh`
+In working directory, run 
+```chmod +x run.sh && ./run.sh```.
 
-Windows: Open `run.bat`
+## Windows
 
-Pulling New Documents
---
+Run `run.bat`.
 
-To reach clickhouse endpoints:
-python -m clickhouse_services.scripts.[name of script]
+## Docker
 
+Use the `POST` endpoint on the Docker container to upload articles to either database; this will upload 10 articles from the Guardian API.
 
-To reach postgres endpoints:
---
+If you're hosting a shared database, run `docker compose up --build`; this loads up the app with uvicorn at `0.0.0.0:8000`.
 
-If you're running the server and database entirely on your own, run:
-1. `uvicorn postgres_services.postgres_controller:app --reload`
+## Local PostgreSQL
 
-If you're hosting the shared database, run:
-1. `cd docker`
-2. `docker compose --env-file ../.env up` (This loads up the app with uvicorn at 0.0.0.0 port 8000)
+Run `uvicorn services.postgres_controller:app --reload`.
 
-To POST articles to PG Database:
-`curl -X POST http://localhost:8000/upload-articles` will upload 10 unique Guardian articles 
-- If the DB is hosted from someone else, replace <<localhost>> with their IP address
+## Local Clickhouse
 
-To GET articles from the PG Database:
-- `curl http://localhost:8000/related-articles?query=<< your query as a URL-encoded string >>`
-- EX: `curl http://localhost:8000/related-articles?query=whats%20trump%20doing`
-- If the DB is hosted from someone else, replace <<localhost>> with their IP address
+Run `uvicorn services.clickhouse_controller:app --reload`.
+
+# Endpoints
+
+## GET
+
+`http://localhost:8000/related-articles?query=<query>`
+
+## POST
+
+`http://localhost:8000/upload-articles`
+
+# License
+
+[MIT](https://choosealicense.com/licenses/mit/)
