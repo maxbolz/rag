@@ -1,1 +1,1 @@
-# This file makes postgres a Python package
+# PostgreSQL services package for RAG application 

@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+{
+        "name": "Postgres FastAPI: Uvicorn",
+        "type": "debugpy",
+        "request": "launch",
+        "module": "uvicorn",
+        "args": [
+            "postgres_services.postgres_controller:app",  // replace with actual module path
+            "--host", "127.0.0.1",
+            "--port", "8000",
+        ],
+        "jinja": true,
+        "justMyCode": true
+        }
+
+    ]
+}
