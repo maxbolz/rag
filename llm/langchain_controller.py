@@ -1,18 +1,19 @@
 import time
 from fastapi import FastAPI
-from langchain_pipeline import RAGApplication
+from llm.langchain_pipeline import RAGApplication
+from llm.async_pipeline import AsyncPipeline
+import asyncio
+from typing import List, Any
+from langchain_core.runnables import RunnableLambda
+from langchain_core.runnables.config import RunnableConfig
 
+app = FastAPI()
 
-class LangchainController:
-    def __init__(self):
-        self.pipeline = RAGApplication()
-        self.app = FastAPI()
-        self._register_routes()
-
-    def _register_routes(self):
-        @self.app.get("/answer-question")
-        def answer_question(query: str):
-            start_time = time.time()
-            answer = self.pipeline.answer_question(query)
-            end_time = time.time()
-            return answer, round(end_time - start_time, 2)
+@app.get("/answer-question")
+async def answer_question(query: str):
+    async_pipeline = AsyncPipeline(2, "test-run-1")
+    start_time = time.time()
+    completed_duration = time.time() - start_time
+    answer = await async_pipeline.run_batch([query] * 10)
+    end_time = time.time()
+    return answer
