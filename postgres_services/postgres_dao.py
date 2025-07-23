@@ -70,10 +70,9 @@ class PostgresDao:
             results = cur.fetchall()
             if not results:
                 raise HTTPException(404, "No matches found")
-            return [
-                {"url": r[0], "title": r[1], "body": r[2], "publication_date": r[3], "score": float(r[4])}
-                for r in results
-            ]
+
+            return results
+            
         except Exception as e:
             logging.error(f"Exception in /search endpoint: {e}", exc_info=True)
             raise HTTPException(500, str(e))
