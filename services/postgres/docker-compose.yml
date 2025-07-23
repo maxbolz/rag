@@ -35,6 +35,7 @@ services:
       - GUARDIAN_API_KEY=${GUARDIAN_API_KEY}
     volumes:
       - ../scripts:/app/scripts
+      - ../.env:/app/.env
       - ../requirements.txt:/app/requirements.txt
       - ../services/postgres:/app/services/postgres
     working_dir: /app
