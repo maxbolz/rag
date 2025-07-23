@@ -1,9 +1,8 @@
 import time
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
-from llm.langchain_pipeline import RAGApplication
-from llm.async_pipeline import AsyncPipeline
-import asyncio
+from llm_utils.langchain_pipeline import RAGApplication
+from llm_utils.async_pipeline import AsyncPipeline
 from typing import List, Any, Optional
 from langchain_core.runnables import RunnableLambda
 from langchain_core.runnables.config import RunnableConfig
@@ -169,6 +168,36 @@ class LangchainController:
                     "max_workers": request.max_workers,
                     "run_id": request.run_id
                 }
+    def answer_question(self, query: str): 
+        """
+        Process a single question.
+        
+        Args:
+            request: JSON body containing the query
+            
+        Returns:
+            JSON response with answer, timing, and metadata
+        """
+        # Track timing
+        start_time = time.time()
+        
+        # Run single question processing
+        answer = self.pipeline.answer_question(query)
+        
+        end_time = time.time()
+        total_duration = end_time - start_time
+        
+        return {
+            "status": "success",
+            "query": query,
+            "answer": answer,
+            "total_duration": total_duration,
+            "metadata": {
+                "start_time": start_time,
+                "end_time": end_time
+            }
+        }
+        
 
 controller = LangchainController()
 app = controller.app

@@ -1,7 +1,7 @@
 import threading
 import uvicorn
 import streamlit as st
-from langchain_controller import LangchainController
+from llm_utils.langchain_controller import LangchainController
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
@@ -215,11 +215,9 @@ if run_button:
             </div>
         ''', unsafe_allow_html=True)
 
-        response = result[0]
-        time_taken = result[1]
+        response = result
+        time_taken = response['metadata']['start_time']
         answer = response.get("answer", "")
-        articles = response.get("articles_used", 0)
-        context = response.get("context", [])
 
         placeholder.markdown(f'''
             <div class="chat-container answer-fadein" style="opacity:0;">
@@ -228,21 +226,21 @@ if run_button:
                     {answer}
                 </div>
             </div>
-            <div class="label answer-fadein">Articles Used: {articles}</div>
+            <div class="label answer-fadein">Articles Used: {1}</div>
             <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
         ''', unsafe_allow_html=True)
 
-        context_html = """
-        <div class="context-box">
-            <div class="label">Context</div>
-            <br />
-        """
-        for article in context:
-            title = article.get("title", "Untitled")
-            url = article.get("url", "#")
-            context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+        # context_html = """
+        # <div class="context-box">
+        #     <div class="label">Context</div>
+        #     <br />
+        # """
+        # for article in context:
+        #     title = article.get("title", "Untitled")
+        #     url = article.get("url", "#")
+        #     context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
 
-        context_html += "</div>"
-        st.markdown(context_html, unsafe_allow_html=True)
+        # context_html += "</div>"
+        # st.markdown(context_html, unsafe_allow_html=True)
     else:
         st.warning("Enter something before running.")
