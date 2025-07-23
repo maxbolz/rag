@@ -22,6 +22,23 @@ Getting Set Up
 
     From the PSQL command shell, connect to the new db with `\c guardian`
 
+    In the PSQL command shell, run:
+    ```
+    CREATE EXTENSION vector;
+
+    CREATE TABLE articles (
+      url TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      body TEXT NOT NULL,
+      publication_date TIMESTAMPTZ NOT NULL,
+      vector vector(384)
+    );
+
+    ```
+    - If you're on windows, you'll probably need to install pgvector in order to allow the vector type in your DB.
+      Follow this guide- https://stackoverflow.com/questions/76678804/unable-to-install-pgvector-extension-for-postgresql-windows
+      
+
 4. Add your psql db credentials to your .env
       ```
       # PSQL CREDENTIALS
