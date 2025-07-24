@@ -1,7 +1,7 @@
 services:
   db:
     image: ankane/pgvector:latest
-    container_name: rag
+    container_name: rag-db
     restart: unless-stopped
     volumes:
       - db_data:/var/lib/postgresql/data # Persistent volume for DB storage
@@ -19,8 +19,8 @@ services:
 
   app:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: ../..
+      dockerfile: services/postgres/Dockerfile
     container_name: rag-app
     depends_on:
       - db
@@ -33,10 +33,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
     volumes:
-      - ../scripts:/app/scripts
-      - ../requirements.txt:/app/requirements.txt
-      - ../services/postgres:/app/services/postgres
-      - ../.env:/app/.env
+      - ../../scripts/:/app/scripts
+      - ../../requirements.txt:/app/requirements.txt
+      - ../../services/postgres:/app/services/postgres
+      - ../../.env:/app/.env
+
     working_dir: /app
     command: ["uvicorn", "services.postgres.postgres_controller:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     restart: unless-stopped
