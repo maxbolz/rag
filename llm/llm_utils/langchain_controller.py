@@ -36,45 +36,7 @@ class LangchainController:
 
         @self.app.get("/answer-questions-multi-batch")
         async def answer_questions_multi_batch(request: MultiBatchRequest):
-            try:
-                async_pipeline = AsyncPipeline(request.max_workers, request.run_id)
-                start_time = time.time()
-                answers = await async_pipeline.run_batch(request.queries)
-                end_time = time.time()
-                total_duration = end_time - start_time
-
-                results = [
-                    {
-                        "query": query,
-                        "answer": answer,
-                        "index": i
-                    }
-                    for i, (query, answer) in enumerate(zip(request.queries, answers))
-                ]
-
-                return {
-                    "status": "success",
-                    "total_queries": len(request.queries),
-                    "max_workers": request.max_workers,
-                    "run_id": request.run_id,
-                    "total_duration": total_duration,
-                    "avg_duration_per_query": total_duration / len(request.queries),
-                    "results": results,
-                    "metadata": {
-                        "start_time": start_time,
-                        "end_time": end_time,
-                        "queries_processed": len(answers)
-                    }
-                }
-
-            except Exception as e:
-                return {
-                    "status": "error",
-                    "error": str(e),
-                    "total_queries": len(request.queries),
-                    "max_workers": request.max_workers,
-                    "run_id": request.run_id
-                }
+            return await self.answer_questions_multi_batch(request)
 
     def answer_question(self, query: str):
         start_time = time.time()
@@ -124,6 +86,47 @@ class LangchainController:
                 "error": str(e),
                 "query": request.query,
                 "batch_size": request.batch_size,
+                "max_workers": request.max_workers,
+                "run_id": request.run_id
+            }
+
+    async def answer_questions_multi_batch(self, request: MultiBatchRequest):
+        try:
+            async_pipeline = AsyncPipeline(request.max_workers, request.run_id)
+            start_time = time.time()
+            answers = await async_pipeline.run_batch(request.queries)
+            end_time = time.time()
+            total_duration = end_time - start_time
+
+            results = [
+                {
+                    "query": query,
+                    "answer": answer,
+                    "index": i
+                }
+                for i, (query, answer) in enumerate(zip(request.queries, answers))
+            ]
+
+            return {
+                "status": "success",
+                "total_queries": len(request.queries),
+                "max_workers": request.max_workers,
+                "run_id": request.run_id,
+                "total_duration": total_duration,
+                "avg_duration_per_query": total_duration / len(request.queries),
+                "results": results,
+                "metadata": {
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "queries_processed": len(answers)
+                }
+            }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "error": str(e),
+                "total_queries": len(request.queries),
                 "max_workers": request.max_workers,
                 "run_id": request.run_id
             }
