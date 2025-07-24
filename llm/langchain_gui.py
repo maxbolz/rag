@@ -258,13 +258,18 @@ with tab1:
             st.warning("Enter something before running.")
 
 with tab2:
-    col1, col2 = st.columns([7, 1])
-    with col1:
-        query = st.text_input(" ", placeholder="Enter your batch query", key="batch_query", label_visibility="collapsed")
+    config_col1, config_col2, config_col3 = st.columns(3)
+    with config_col1:
         batch_size = st.number_input("Batch Size", min_value=1, max_value=100, value=10)
+    with config_col2:
         max_workers = st.number_input("Max Workers", min_value=1, max_value=10, value=2)
+    with config_col3:
         run_id = st.text_input("Run ID", value="test-run-1")
-    with col2:
+
+    query_col, button_col = st.columns([7, 1])
+    with query_col:
+        query = st.text_input(" ", placeholder="Enter your batch query", key="batch_query", label_visibility="collapsed")
+    with button_col:
         run_batch_button = st.button("Run", key="run_batch_query")
 
     if run_batch_button:
