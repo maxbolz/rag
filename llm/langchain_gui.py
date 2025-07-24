@@ -1,7 +1,8 @@
+import asyncio
 import threading
 import uvicorn
 import streamlit as st
-from llm_utils.langchain_controller import LangchainController
+from llm_utils.langchain_controller import LangchainController, BatchQuestionRequest
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
@@ -173,6 +174,20 @@ span[data-testid="stTextInputInstructions"],
     text-decoration: underline;
 }}
 
+button[data-baseweb="tab"] {{
+    color: #ccc !important;  /* Inactive tab color */
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+}}
+
+button[data-baseweb="tab"][aria-selected="true"] {{
+    background: linear-gradient(135deg, #052962, #1558aa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    border-bottom: 2px solid #1558aa;
+}}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -188,60 +203,122 @@ api_thread.start()
 
 st.title("RAGuardian")
 
-col1, col2 = st.columns([7, 1])
-with col1:
-    user_input = st.text_input(" ", placeholder="Enter your question", key="user_input", label_visibility="collapsed")
-with col2:
-    run_button = st.button("Run")
+tab1, tab2 = st.tabs(["Single Query", "Bulk Query"])
 
-if run_button:
-    if user_input:
-        placeholder = st.empty()
+with tab1:
 
-        # Show loading UI
-        placeholder.markdown(f'''
-            <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
-                <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
-                <div class="label">RAGuardian is thinking...</div>
-            </div>
-        ''', unsafe_allow_html=True)
+    col1, col2 = st.columns([7, 1])
+    with col1:
+        user_input = st.text_input(" ", placeholder="Enter your question", key="user_input", label_visibility="collapsed")
+    with col2:
+        run_button = st.button("Run", key="run_single_query")
 
-        result = controller.answer_question(user_input)
+    if run_button:
+        if user_input:
+            placeholder = st.empty()
 
-        placeholder.markdown(f'''
-            <div id="loading" class="loading-fadeout" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
-                <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
-                <div class="label">RAGuardian is thinking...</div>
-            </div>
-        ''', unsafe_allow_html=True)
-
-        response = result
-        time_taken = response.get('total_duration')
-        answer = response.get("answer").get("answer", "")
-        context = response.get("answer").get("context", [])
-
-        placeholder.markdown(f'''
-            <div class="chat-container answer-fadein" style="opacity:0;">
-                <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-                <div class="result-bubble">
-                    {answer}
+            placeholder.markdown(f'''
+                <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
+                    <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
+                    <div class="label">RAGuardian is thinking...</div>
                 </div>
-            </div>
-            <div class="label answer-fadein">Articles Used: {len(context)}</div>
-            <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
-        ''', unsafe_allow_html=True)
+            ''', unsafe_allow_html=True)
 
-        context_html = """
-        <div class="context-box">
-            <div class="label">Context</div>
-            <br />
-        """
-        for article in context:
-            title = article.get("title", "Untitled")
-            url = article.get("url", "#")
-            context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+            result = controller.answer_question(user_input)
 
-        context_html += "</div>"
-        st.markdown(context_html, unsafe_allow_html=True)
-    else:
-        st.warning("Enter something before running.")
+            response = result
+            time_taken = response.get('total_duration')
+            answer = response.get("answer").get("answer", "")
+            context = response.get("answer").get("context", [])
+
+            placeholder.markdown(f'''
+                <div class="chat-container answer-fadein" style="opacity:0;">
+                    <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
+                    <div class="result-bubble">
+                        {answer}
+                    </div>
+                </div>
+                <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
+            ''', unsafe_allow_html=True)
+
+            context_html = """
+            <div class="context-box">
+                <div class="label">Context</div>
+                <br />
+            """
+            for article in context:
+                title = article.get("title", "Untitled")
+                url = article.get("url", "#")
+                context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+
+            context_html += "</div>"
+            st.markdown(context_html, unsafe_allow_html=True)
+        else:
+            st.warning("Enter something before running.")
+
+with tab2:
+    col1, col2 = st.columns([7, 1])
+    with col1:
+        query = st.text_input(" ", placeholder="Enter your batch query", key="batch_query", label_visibility="collapsed")
+        batch_size = st.number_input("Batch Size", min_value=1, max_value=100, value=10)
+        max_workers = st.number_input("Max Workers", min_value=1, max_value=10, value=2)
+        run_id = st.text_input("Run ID", value="test-run-1")
+    with col2:
+        run_batch_button = st.button("Run", key="run_batch_query")
+
+    if run_batch_button:
+        if query:
+            placeholder = st.empty()
+            placeholder.markdown(f'''
+                <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
+                    <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
+                    <div class="label">RAGuardian is thinking...</div>
+                </div>
+            ''', unsafe_allow_html=True)
+
+            request = BatchQuestionRequest(
+                query=query,
+                batch_size=batch_size,
+                max_workers=max_workers,
+                run_id=run_id
+            )
+
+            # Run the async call inside Streamlit using asyncio
+            result = asyncio.run(controller.answer_question_batch(request))
+
+            placeholder.empty()
+
+            answers = result.get("answers", [])
+            total_duration = result.get("total_duration", 0)
+            placeholder.markdown(f'''
+                <div class="label answer-fadein">Batch Size: {batch_size}</div>
+                <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
+            ''', unsafe_allow_html=True)
+
+            for i, answer in enumerate(answers):
+                # content = answer.get("answer", "")
+                # context = answer.get("context", [])
+
+                content = "content"
+                context = "context"
+
+                placeholder.markdown(f'''
+                    <div class="chat-container answer-fadein" style="opacity:0;">
+                        <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
+                        <div class="result-bubble">
+                            <b>Answer {i+1}</b><br>{content}
+                        </div>
+                    </div>
+                    <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                ''', unsafe_allow_html=True)
+
+                context_html = '<div class="context-box"><div class="label">Context</div><br>'
+                for article in context:
+                    title = article.get("title", "Untitled")
+                    url = article.get("url", "#")
+                    context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+                context_html += '</div>'
+                st.markdown(context_html, unsafe_allow_html=True)
+        else:
+            st.warning("Enter something before running.")
