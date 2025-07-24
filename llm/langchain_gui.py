@@ -339,7 +339,7 @@ with tab3:
     with config_col2:
         run_id = st.text_input("Run ID", value="multi-batch-run")
 
-    query_input = st.text_area("", key="multi_query", height=200, placeholder="Enter one query per line")
+    query_input = st.text_area("", key="multi_query", height=200, placeholder="Enter one query per line", label_visibility="collapsed")
 
     run_batch_button = st.button("Run", key="run_multi_query")
 

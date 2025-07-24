@@ -26,18 +26,29 @@ class AsyncPipeline:
         self.async_runnable = RunnableLambda(self.app.answer_question)
 
     async def run_batch(self, questions: List[str]) -> List[Any]:
-        inputs = [{"question": q} for q in questions]
+        # Attach index to each input for order preservation
+        indexed_inputs = [(i, {"question": q}) for i, q in enumerate(questions)]
         start_time = time.time()
         completed_results = []
-        async for result in self.async_runnable.abatch_as_completed(inputs, config=self.config):
-            completed_results.append(result)
-            # Show progress every 20 completions
+        # Use a mapping from index to result
+        async for (idx, result) in self._abatch_with_index(indexed_inputs):
+            completed_results.append((idx, result))
             if len(completed_results) % 20 == 0:
-                print(f"   📈 {len(completed_results)}/{len(inputs)} completed...")
+                print(f"   📈 {len(completed_results)}/{len(indexed_inputs)} completed...")
         completed_duration = time.time() - self.run_time
         self.run_time = completed_duration
-        
-        return completed_results
+        # Sort results by original index
+        completed_results.sort(key=lambda x: x[0])
+        # Return only the results, in order
+        return [result for idx, result in completed_results]
+
+    async def _abatch_with_index(self, indexed_inputs):
+        # Helper generator to yield (index, result) pairs as they complete
+        tasks = [self.async_runnable.abatch([inp], config=self.config) for _, inp in indexed_inputs]
+        for idx, task in enumerate(asyncio.as_completed(tasks)):
+            result = await task
+            # abatch returns a list, so take the first element
+            yield indexed_inputs[idx][0], result[0]
 
 
 async def main():
