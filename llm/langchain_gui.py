@@ -227,7 +227,7 @@ if run_button:
                     {answer}
                 </div>
             </div>
-            <div class="label answer-fadein">Articles Used: {1}</div>
+            <div class="label answer-fadein">Articles Used: {len(context)}</div>
             <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
         ''', unsafe_allow_html=True)
 
