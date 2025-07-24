@@ -25,8 +25,13 @@ class State(TypedDict):
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
-    # use your existing ClickHouse-based retriever
-    docs = requests.get(f"http://localhost:8000/related-articles?query={state['question']}").json()
+    # Choose port based on database type
+    if os.getenv("DATABASE_TYPE", "").lower() == "clickhouse":
+        port = 8000  # Port from clickhouse docker-compose
+    elif os.getenv("DATABASE_TYPE", "").lower() == "postgres":
+        port = 8001  # Port from postgres docker-compose
+
+    docs = requests.get(f"http://localhost:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(

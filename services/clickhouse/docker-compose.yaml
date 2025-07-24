@@ -32,6 +32,7 @@ services:
     depends_on:
       - clickhouse
     environment:
+      - DATABASE_TYPE=clickhouse
       - CLICKHOUSE_HOST=clickhouse
       - CLICKHOUSE_PORT=9000
       - CLICKHOUSE_USER=user
