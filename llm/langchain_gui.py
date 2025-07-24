@@ -291,7 +291,7 @@ with tab2:
 
             # Run the async call inside Streamlit using asyncio
             result = asyncio.run(controller.answer_question_batch(request))
-
+ 
             placeholder.empty()
 
             answers = result.get("answers", [])
@@ -302,23 +302,19 @@ with tab2:
             ''', unsafe_allow_html=True)
 
             for i, answer in enumerate(answers):
-                # content = answer.get("answer", "")
-                # context = answer.get("context", [])
-
-                content = "content"
-                context = "context"
-
+                context = answer[1].get("context", [])
+                answer = answer[1].get("answer", "")
                 placeholder.markdown(f'''
                     <div class="chat-container answer-fadein" style="opacity:0;">
                         <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
                         <div class="result-bubble">
-                            <b>Answer {i+1}</b><br>{content}
+                            <b>Sample Answer</b><br>{answer}
                         </div>
                     </div>
                     <div class="label answer-fadein">Articles Used: {len(context)}</div>
                 ''', unsafe_allow_html=True)
 
-                context_html = '<div class="context-box"><div class="label">Context</div><br>'
+                context_html = f'<div class="context-box"><div class="label">Context {i+1}</div><br>'
                 for article in context:
                     title = article.get("title", "Untitled")
                     url = article.get("url", "#")
