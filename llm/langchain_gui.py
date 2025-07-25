@@ -218,6 +218,7 @@ with tab1:
     col1, col2 = st.columns([7, 1])
     with col1:
         user_input = st.text_input(" ", placeholder="Enter your question", key="user_input", label_visibility="collapsed")
+        db_input = st.text_input("Database", placeholder="Enter database name or string", key="db_input")
     with col2:
         run_button = st.button("Run", key="run_single_query")
 
@@ -232,7 +233,8 @@ with tab1:
                 </div>
             ''', unsafe_allow_html=True)
 
-            result = controller.answer_question(user_input)
+            # Pass db_input as a param
+            result = controller.answer_question(user_input, database=db_input)
 
             response = result
             time_taken = response.get('total_duration')
@@ -264,136 +266,3 @@ with tab1:
             st.markdown(context_html, unsafe_allow_html=True)
         else:
             st.warning("Enter something before running.")
-
-with tab2:
-    config_col1, config_col2, config_col3 = st.columns(3)
-    with config_col1:
-        batch_size = st.number_input("Batch Size", key="batch_size", min_value=1, max_value=100, value=10)
-    with config_col2:
-        max_workers = st.number_input("Max Workers", key="batch_workers", min_value=1, max_value=10, value=2)
-    with config_col3:
-        run_id = st.text_input("Run ID", value="test-run-1")
-
-    query_col, button_col = st.columns([7, 1])
-    with query_col:
-        query = st.text_input(" ", placeholder="Enter your batch query", key="batch_query", label_visibility="collapsed")
-    with button_col:
-        run_batch_button = st.button("Run", key="run_batch_query")
-
-    if run_batch_button:
-        if query:
-            placeholder = st.empty()
-            placeholder.markdown(f'''
-                <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
-                    <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
-                    <div class="label">RAGuardian is thinking...</div>
-                </div>
-            ''', unsafe_allow_html=True)
-
-            request = BatchQuestionRequest(
-                query=query,
-                batch_size=batch_size,
-                max_workers=max_workers,
-                run_id=run_id
-            )
-
-            # Run the async call inside Streamlit using asyncio
-            result = asyncio.run(controller.answer_question_batch(request))
- 
-            placeholder.empty()
-
-            answers = result.get("answers", [])
-            total_duration = result.get("total_duration", 0)
-            placeholder.markdown(f'''
-                <div class="label answer-fadein">Batch Size: {batch_size}</div>
-                <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
-            ''', unsafe_allow_html=True)
-
-            for i, answer in enumerate(answers):
-                context = answer[1].get("context", [])
-                answer = answer[1].get("answer", "")
-                placeholder.markdown(f'''
-                    <div class="chat-container answer-fadein" style="opacity:0;">
-                        <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-                        <div class="result-bubble">
-                            <b>Sample Answer</b><br>{answer}
-                        </div>
-                    </div>
-                    <div class="label answer-fadein">Articles Used: {len(context)}</div>
-                ''', unsafe_allow_html=True)
-
-                context_html = f'<div class="context-box"><div class="label">Context {i+1}</div><br>'
-                for article in context:
-                    title = article.get("title", "Untitled")
-                    url = article.get("url", "#")
-                    context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
-                context_html += '</div>'
-                st.markdown(context_html, unsafe_allow_html=True)
-        else:
-            st.warning("Enter something before running.")
-
-with tab3:
-    config_col1, config_col2 = st.columns(2)
-    with config_col1:
-        max_workers = st.number_input("Max Workers", key="multi_workers", min_value=1, max_value=10, value=2)
-    with config_col2:
-        run_id = st.text_input("Run ID", value="multi-batch-run")
-
-    query_input = st.text_area("", key="multi_query", height=200, placeholder="Enter one query per line", label_visibility="collapsed")
-
-    run_batch_button = st.button("Run", key="run_multi_query")
-
-    if run_batch_button:
-        queries = [line.strip() for line in query_input.strip().splitlines() if line.strip()]
-        if queries:
-            placeholder = st.empty()
-            placeholder.markdown(f'''
-                <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
-                    <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
-                    <div class="label">RAGuardian is thinking...</div>
-                </div>
-            ''', unsafe_allow_html=True)
-
-            request = MultiBatchRequest(
-                queries=queries,
-                max_workers=max_workers,
-                run_id=run_id
-            )
-
-            result = asyncio.run(controller.answer_questions_multi_batch(request))
-
-            placeholder.empty()
-
-            answers = result.get("results", [])
-            total_duration = result.get("total_duration", 0)
-
-            st.markdown(f'''
-                <div class="label answer-fadein">Queries: {len(queries)}</div>
-                <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
-            ''', unsafe_allow_html=True)
-
-            for i, item in enumerate(answers):
-                query = item.get("query", "")
-                answer_data = item.get("answer", {})
-                answer = answer_data.get("answer", "")
-                context = answer_data.get("context", [])
-
-                st.markdown(f'''
-                    <div class="chat-container answer-fadein" style="opacity:0;">
-                        <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-                        <div class="result-bubble">
-                            <b>Q{i+1}: {query}</b><br>{answer}
-                        </div>
-                    </div>
-                    <div class="label answer-fadein">Articles Used: {len(context)}</div>
-                ''', unsafe_allow_html=True)
-
-                context_html = f'<div class="context-box"><div class="label">Context {i + 1}</div><br>'
-                for article in context:
-                    title = article.get("title", "Untitled")
-                    url = article.get("url", "#")
-                    context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
-                context_html += '</div>'
-                st.markdown(context_html, unsafe_allow_html=True)
-        else:
-            st.warning("Please enter at least one valid query.")

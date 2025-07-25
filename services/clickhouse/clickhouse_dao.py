@@ -157,7 +157,8 @@ class ClickhouseDao:
         """Run the complete pipeline to fetch, vectorize and upload Guardian articles"""
         logging.info("Starting Guardian article vectorization pipeline...")
         try:
-            articles = self.fetch_guardian_articles(1, 10)
+            articles = self.fetch_guardian_articles(10, 10)
+            print(os.getenv("GUARDIAN_API_KEY"))
             articles_with_embeddings = self.generate_embeddings(articles)
             success = self.upload_to_clickhouse(articles_with_embeddings)
             if success:

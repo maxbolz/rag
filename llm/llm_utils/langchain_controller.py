@@ -27,8 +27,8 @@ class LangchainController:
 
     def _register_routes(self):
         @self.app.get("/answer-question")
-        def answer_question(query: str):
-            return self.answer_question(query)
+        def answer_question(query: str, database: str):
+            return self.answer_question(query, database)
 
         @self.app.get("/answer-question-batch")
         async def answer_question_batch(request: BatchQuestionRequest):
@@ -38,9 +38,9 @@ class LangchainController:
         async def answer_questions_multi_batch(request: MultiBatchRequest):
             return await self.answer_questions_multi_batch(request)
 
-    def answer_question(self, query: str):
+    def answer_question(self, query: str, database: str):
         start_time = time.time()
-        answer = self.pipeline.answer_question(query)
+        answer = self.pipeline.answer_question(query, database)
         end_time = time.time()
         total_duration = end_time - start_time
 

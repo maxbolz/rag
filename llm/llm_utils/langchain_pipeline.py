@@ -1,3 +1,4 @@
+from enum import Enum
 import os
 import logging
 from dotenv import load_dotenv
@@ -16,17 +17,25 @@ from typing_extensions import TypedDict
 load_dotenv()
 
 
+POST_ENDPOINT_URL = "http://0.0.0.0:8000/upload-articles"
+
 # 1. Define the shared state for orchestration
+class Database(Enum):
+    CLICKHOUSE = ("clickhouse", 8000)
+    POSTGRES = ("postgres", 8001)
+
+
 class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
+    database: Database
 
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
-    # use your existing ClickHouse-based retriever
-    docs = requests.get(f"http://localhost:8000/related-articles?query={state['question']}").json()
+    port = state.get("database", Database.CLICKHOUSE).value[1]
+    docs = requests.get(f"http://localhost:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
@@ -55,6 +64,23 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
     response = app.llm.invoke(prompt_str)
     return {"answer": response.content}
+
+def post(data, endpoint_url=None):
+    """Post results to the specified endpoint"""
+    if not endpoint_url:
+        endpoint_url = POST_ENDPOINT_URL
+    
+    try:
+        response = requests.post(
+            endpoint_url,
+            json=data,
+            timeout=30,
+            headers={'Content-Type': 'application/json'}
+        )
+        response.raise_for_status()
+        return {"status": "success", "response": response.json() if response.content else {}}
+    except requests.exceptions.RequestException as e:
+        return {"status": "error", "error": str(e)}
 
 
 class RAGApplication:
@@ -90,17 +116,22 @@ class RAGApplication:
 
         # 4. Build the LangGraph orchestration
         builder = StateGraph(State).add_sequence([
+            post,
             retrieve,
             lambda state: generate(state, self)
         ])
-        builder.add_edge(START, "retrieve")
+        builder.add_edge(START, "post")
         self.graph = builder.compile()
 
-    def answer_question(self, question: str) -> Dict[str, Any]:
+
+    def answer_question(self, question: str, database: str) -> Dict[str, Any]:
         """Invoke the orchestrated RAG graph in one call."""
         try:
             # run through retrieve → generate
-            result_state = self.graph.invoke({"question": question})
+            if database not in [db.value[0] for db in Database]:
+                raise ValueError(f"Invalid database: {database}. Must be one of {[db.value[0] for db in Database]}.")
+            result_state = self.graph.invoke({"question": question,
+                                              "database": Database[database.upper()]})
             # unpack
             answer = result_state["answer"]
             docs: List[Document] = result_state["context"]

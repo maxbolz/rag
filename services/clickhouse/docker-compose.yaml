@@ -25,6 +25,7 @@ services:
     networks:
       - clickhouse-network
   fastapi:
+    env_file: "../../.env"
     build:
       context: ../..
       dockerfile: services/clickhouse/Dockerfile
@@ -41,8 +42,6 @@ services:
       - "8000:80"
     volumes:
       - .:/app
-      - ../requirements.txt:/app/requirements.txt
-      - ../.env:/app/.env
     networks:
       - clickhouse-network
     restart: unless-stopped
