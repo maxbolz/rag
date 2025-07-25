@@ -1,0 +1,43 @@
+services:
+  db:
+    image: cassandra:latest
+    container_name: rag-cassandra-db
+    restart: unless-stopped
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+      - ./init:/init
+    ports:
+      - 19042:9042
+    environment:
+      - CASSANDRA_CLUSTER_NAME=Test Cluster
+    ulimits:                                          
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  app:
+    build:
+      context: ../..
+      dockerfile: services/cassandra/Dockerfile
+    container_name: rag-app
+    depends_on:
+      - db
+    ports:
+      - 8003:8003
+    environment:
+      - DATABASE_TYPE=cassandra
+      - CASSANDRA_HOST=db         # refers to service name 'db' here
+      - CASSANDRA_PORT=9042
+      - CASSANDRA_KEYSPACE=vectorembeds
+    volumes:
+      - ../../scripts/:/app/scripts
+      - ../../requirements.txt:/app/requirements.txt
+      - ../../services/cassandra:/app/services/cassandra
+      - ../../.env:/app/.env
+
+    working_dir: /app
+    command: [ "uvicorn", "services.cassandra.cassandra_controller:app", "--host", "0.0.0.0", "--port", "8003", "--reload" ]
+    restart: unless-stopped
+
+volumes:
+  cassandra_data:
