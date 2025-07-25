@@ -44,11 +44,19 @@ class AsyncPipeline:
 
     async def _abatch_with_index(self, indexed_inputs):
         # Helper generator to yield (index, result) pairs as they complete
-        tasks = [self.async_runnable.abatch([inp], config=self.config) for _, inp in indexed_inputs]
-        for idx, task in enumerate(asyncio.as_completed(tasks)):
-            result = await task
-            # abatch returns a list, so take the first element
-            yield indexed_inputs[idx][0], result[0]
+        tasks = []
+        for idx, inp in indexed_inputs:
+            # Each task is a tuple of (original index, coroutine)
+            task = asyncio.create_task(self.async_runnable.abatch([inp], config=self.config))
+            tasks.append((idx, task))
+        pending = set(task for _, task in tasks)
+        while pending:
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            for finished_task in done:
+                # Find the index associated with this finished task
+                idx = next(idx for idx, t in tasks if t is finished_task)
+                result = await finished_task
+                yield idx, result[0]
 
 
 async def main():
