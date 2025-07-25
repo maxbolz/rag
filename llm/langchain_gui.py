@@ -6,7 +6,7 @@ from llm_utils.langchain_controller import LangchainController, BatchQuestionReq
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
-GRAFANA_URL = "https://gomattams.grafana.net/public-dashboards/eafb34fab5464a3fb671f8b622a0fbf1"
+GRAFANA_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753395832378&to=1753417432378&timezone=browser&panelId=1&__feature.dashboardSceneSolo=true"
 
 # --- Custom styles ---
 st.markdown(f"""
@@ -401,7 +401,8 @@ with tab3:
 
 with tab4:
     grafana_iframe = f"""
-<iframe src="http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753395832378&to=1753417432378&timezone=browser&panelId=1&__feature.dashboardSceneSolo=true" width="450" height="200" frameborder="0"></iframe>
+    <iframe src={GRAFANA_URL}
+            width="1000" height="600" frameborder="0"></iframe>
     """
 
     st.components.v1.html(grafana_iframe, height=600)
