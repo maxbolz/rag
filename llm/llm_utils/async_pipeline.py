@@ -26,18 +26,37 @@ class AsyncPipeline:
         self.async_runnable = RunnableLambda(self.app.answer_question)
 
     async def run_batch(self, questions: List[str]) -> List[Any]:
-        inputs = [{"question": q} for q in questions]
+        # Attach index to each input for order preservation
+        indexed_inputs = [(i, {"question": q}) for i, q in enumerate(questions)]
         start_time = time.time()
         completed_results = []
-        async for result in self.async_runnable.abatch_as_completed(inputs, config=self.config):
-            completed_results.append(result)
-            # Show progress every 20 completions
+        # Use a mapping from index to result
+        async for (idx, result) in self._abatch_with_index(indexed_inputs):
+            completed_results.append((idx, result))
             if len(completed_results) % 20 == 0:
-                print(f"   📈 {len(completed_results)}/{len(inputs)} completed...")
+                print(f"   📈 {len(completed_results)}/{len(indexed_inputs)} completed...")
         completed_duration = time.time() - self.run_time
         self.run_time = completed_duration
-        
-        return completed_results
+        # Sort results by original index
+        completed_results.sort(key=lambda x: x[0])
+        # Return only the results, in order
+        return [result for idx, result in completed_results]
+
+    async def _abatch_with_index(self, indexed_inputs):
+        # Helper generator to yield (index, result) pairs as they complete
+        tasks = []
+        for idx, inp in indexed_inputs:
+            # Each task is a tuple of (original index, coroutine)
+            task = asyncio.create_task(self.async_runnable.abatch([inp], config=self.config))
+            tasks.append((idx, task))
+        pending = set(task for _, task in tasks)
+        while pending:
+            done, pending = await asyncio.wait(pending, return_when=asyncio.FIRST_COMPLETED)
+            for finished_task in done:
+                # Find the index associated with this finished task
+                idx = next(idx for idx, t in tasks if t is finished_task)
+                result = await finished_task
+                yield idx, result[0]
 
 
 async def main():
