@@ -27,8 +27,13 @@ class State(TypedDict):
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
-    # use your existing ClickHouse-based retriever
-    docs = requests.get(f"http://localhost:8000/related-articles?query={state['question']}").json()
+    # Choose port based on database type
+    if os.getenv("DATABASE_TYPE", "").lower() == "clickhouse":
+        port = 8000  # Port from clickhouse docker-compose
+    elif os.getenv("DATABASE_TYPE", "").lower() == "postgres":
+        port = 8001  # Port from postgres docker-compose
+
+    docs = requests.get(f"http://localhost:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
@@ -58,6 +63,20 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     response = app.llm.invoke(prompt_str)
 
     return {"answer": response.content}
+=======
+
+    # ctx = "\n\n".join(
+    #     f"Title: {doc.metadata['title']}\n"
+    #     f"Date: {doc.metadata['publication_date']}\n"
+    #     f"Content: {doc.page_content}"
+    #     for doc in state["context"]
+    # )
+    # prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
+    # response = app.llm.invoke(prompt_str)
+    # return {"answer": response.content}
+
+    return {"answer": "lorem ipsum dolor sit amet \n\n ******* this is a sample response so that we dont call the LLM and waste money. If you want to see the real response, uncomment the code in def generate in langchain_pipeline.py"}
+>>>>>>> 3817806ba64e4d258b41ebde6e06725516fabfcb:llm/llm_utils/langchain_pipeline.py
 
 
 class RAGApplication:

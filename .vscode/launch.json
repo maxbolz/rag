@@ -10,7 +10,7 @@
         "request": "launch",
         "module": "uvicorn",
         "args": [
-            "postgres_services.postgres_controller:app",  // replace with actual module path
+            "services.postgres.postgres_controller:app",  // replace with actual module path
             "--host", "127.0.0.1",
             "--port", "8000",
         ],
