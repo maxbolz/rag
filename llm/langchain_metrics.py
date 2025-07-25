@@ -92,7 +92,7 @@ class LangchainMetrics:
         )
         print(f"Run {run.id} saved to ClickHouse")
 
-    def get_recent_runs(self):
+    def get_runs(self):
         # Get runs from the last hour
         print("Getting recent runs...")
         try:
@@ -157,11 +157,12 @@ class LangchainMetrics:
                 
         except Exception as e:
             print(f"Error: {e}")
+            return []
 
 if __name__ == "__main__":
     langchain_metrics = LangchainMetrics()
     langchain_metrics.connect_clickhouse()
-    runs = langchain_metrics.get_recent_runs()
+    runs = langchain_metrics.get_runs()
     for run in runs:
         langchain_metrics.save_to_clickhouse(run=run)
 

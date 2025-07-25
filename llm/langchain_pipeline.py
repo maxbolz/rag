@@ -8,6 +8,8 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from pydantic import SecretStr
 import requests
+from langchain_metrics import LangchainMetrics
+
 
 # === LangGraph imports ===
 from langgraph.graph import StateGraph, START
@@ -54,6 +56,7 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     )
     prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
     response = app.llm.invoke(prompt_str)
+
     return {"answer": response.content}
 
 
@@ -141,3 +144,8 @@ if __name__ == "__main__":
         print(f"Answer: {res['answer']}")
         print(f"Articles used: {res['articles_used']}")
         print("-" * 60)
+    langchain_metrics = LangchainMetrics()
+    langchain_metrics.connect_clickhouse()
+    runs = langchain_metrics.get_runs()
+    for run in runs:
+        langchain_metrics.save_to_clickhouse(run=run)
