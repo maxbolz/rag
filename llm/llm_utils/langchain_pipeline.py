@@ -29,13 +29,12 @@ class State(TypedDict):
     question: str
     context: List[Document]
     answer: str
-    database: Database
+    port: int
 
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
-    port = state.get("database", Database.CLICKHOUSE).value[1]
-    docs = requests.get(f"http://localhost:{port}/related-articles?query={state['question']}").json()
+    docs = requests.get(f"http://localhost:{state.get("port", 8000)}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
@@ -84,7 +83,7 @@ def post(data, endpoint_url=None):
 
 
 class RAGApplication:
-    def __init__(self, max_articles: int = 5):
+    def __init__(self, name: str, max_articles: int = 5):
         # — your existing initialization —
         self.max_articles = max_articles
         self.anthropic = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
@@ -121,7 +120,7 @@ class RAGApplication:
             lambda state: generate(state, self)
         ])
         builder.add_edge(START, "post")
-        self.graph = builder.compile()
+        self.graph = builder.compile(name=name)
 
 
     def answer_question(self, question: str, database: str) -> Dict[str, Any]:
@@ -130,8 +129,9 @@ class RAGApplication:
             # run through retrieve → generate
             if database not in [db.value[0] for db in Database]:
                 raise ValueError(f"Invalid database: {database}. Must be one of {[db.value[0] for db in Database]}.")
+            
             result_state = self.graph.invoke({"question": question,
-                                              "database": Database[database.upper()]})
+                                              "port": Database[database.upper()].value[1]})
             # unpack
             answer = result_state["answer"]
             docs: List[Document] = result_state["context"]

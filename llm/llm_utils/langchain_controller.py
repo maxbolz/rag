@@ -22,7 +22,7 @@ class MultiBatchRequest(BaseModel):
 class LangchainController:
     def __init__(self):
         self.app = FastAPI()
-        self.pipeline = RAGApplication()
+        self.pipeline = RAGApplication(name="Langchain Guardian RAG Pipeline")
         self._register_routes()
 
     def _register_routes(self):
