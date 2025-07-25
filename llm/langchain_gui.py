@@ -6,6 +6,7 @@ from llm_utils.langchain_controller import LangchainController, BatchQuestionReq
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
+GRAFANA_URL = "https://gomattams.grafana.net/public-dashboards/eafb34fab5464a3fb671f8b622a0fbf1"
 
 # --- Custom styles ---
 st.markdown(f"""
@@ -211,7 +212,7 @@ api_thread.start()
 
 st.title("RAGuardian")
 
-tab1, tab2, tab3 = st.tabs(["Single Query", "Bulk Query", "Multi Query"])
+tab1, tab2, tab3, tab4 = st.tabs(["Single Query", "Bulk Query", "Multi Query", "Metrics"])
 
 with tab1:
 
@@ -397,3 +398,11 @@ with tab3:
                 st.markdown(context_html, unsafe_allow_html=True)
         else:
             st.warning("Please enter at least one valid query.")
+
+with tab4:
+    grafana_iframe = f"""
+    <iframe src={GRAFANA_URL}
+            width="1000" height="600" frameborder="0"></iframe>
+    """
+
+    st.components.v1.html(grafana_iframe, height=600)
