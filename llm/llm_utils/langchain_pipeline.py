@@ -32,6 +32,7 @@ def retrieve(state: State) -> Dict[str, Any]:
         port = 8001  # Port from postgres docker-compose
 
     docs = requests.get(f"http://{os.getenv('HOST', 'localhost')}:{port}/related-articles?query={state['question']}").json()
+    
     # convert to LangChain Documents
     documents = [
         Document(
