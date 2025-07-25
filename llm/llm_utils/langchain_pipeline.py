@@ -31,7 +31,7 @@ def retrieve(state: State) -> Dict[str, Any]:
     elif os.getenv("DATABASE_TYPE", "").lower() == "postgres":
         port = 8001  # Port from postgres docker-compose
 
-    docs = requests.get(f"http://localhost:{port}/related-articles?query={state['question']}").json()
+    docs = requests.get(f"http://{os.getenv('HOST', 'localhost')}:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
