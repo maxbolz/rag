@@ -26,7 +26,7 @@ class AsyncPipeline:
         )
         self.async_runnable = RunnableLambda(lambda d: self.app.answer_question(d["question"], d["database"]))
 
-    async def run_batch(self, questions: List[str], database: str) -> List[Any]:
+    async def run_batch(self, questions: List[str]) -> List[Any]:
         # Attach index to each input for order preservation
         indexed_inputs = [(i, {"question": q, "database": self.database}) for i, q in enumerate(questions)]
         start_time = time.time()
