@@ -27,6 +27,8 @@ POSTGRES_HOST="localhost"
 POSTGRES_PORT=5432
 
 GUARDIAN_API_KEY="<your-key>"
+
+HOST="localhost" or shared IP address holding the container 
 ```
 
 3. Install PostgreSQL; ensure you **write down your login somewhere safe**.
@@ -83,11 +85,11 @@ To use streamlit with this local server, specify `LOCAL_API_SERVER = true` in yo
 
 ## GET
 
-`http://localhost:8000/related-articles?query=<query>`
+curl "http://localhost:8000/related-articles?query=<query>"
 
 ## POST
 
-`http://localhost:8000/upload-articles`
+curl -X POST "http://localhost:8000/upload-articles"
 
 # License
 
