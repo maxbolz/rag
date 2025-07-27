@@ -53,16 +53,17 @@ def retrieve(state: State) -> Dict[str, Any]:
 
 # 3. Step 2: generate answer with Claude
 def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
-    # build context string
-    ctx = "\n\n".join(
-        f"Title: {doc.metadata['title']}\n"
-        f"Date: {doc.metadata['publication_date']}\n"
-        f"Content: {doc.page_content}"
-        for doc in state["context"]
-    )
-    prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
-    response = app.llm.invoke(prompt_str)
-    return {"answer": response.content}
+    # # build context string
+    # ctx = "\n\n".join(
+    #     f"Title: {doc.metadata['title']}\n"
+    #     f"Date: {doc.metadata['publication_date']}\n"
+    #     f"Content: {doc.page_content}"
+    #     for doc in state["context"]
+    # )
+    # prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
+    # response = app.llm.invoke(prompt_str)
+    # return {"answer": response.content}
+    return {"answer": "This is a placeholder answer. Replace with actual generation logic."}
 
 def post(data, endpoint_url=None):
     """Post results to the specified endpoint"""
