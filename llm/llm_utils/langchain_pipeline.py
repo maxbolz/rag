@@ -36,8 +36,9 @@ class State(TypedDict):
 def retrieve(state: State) -> Dict[str, Any]:
     # Choose port based on database type
     port = PORT_MAPPING[AvailableRAGDatabases(os.getenv("DATABASE_TYPE", "").lower())]
-
-    docs = requests.get(f"http://127.0.0.1:{port}/related-articles?query={state['question']}").json()
+    logging.info(f"Using port {port} for {AvailableRAGDatabases(os.getenv('DATABASE_TYPE', '').lower())}")
+    hostname = "host.docker.internal" if os.getenv("LOCAL_API_SERVER", False) else "localhost"
+    docs = requests.get(f"http://{hostname}:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
