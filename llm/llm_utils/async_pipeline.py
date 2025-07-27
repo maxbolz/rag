@@ -25,9 +25,10 @@ class AsyncPipeline:
         )
         self.async_runnable = RunnableLambda(self.app.answer_question)
 
-    async def run_batch(self, questions: List[str]) -> List[Any]:
+    async def run_batch(self, questions: List[str], database: str) -> List[Any]:
         # Attach index to each input for order preservation
-        indexed_inputs = [(i, {"question": q}) for i, q in enumerate(questions)]
+        indexed_inputs = [(i, {"question": q, 
+                               "database": database}) for i, q in enumerate(questions)]
         start_time = time.time()
         completed_results = []
         # Use a mapping from index to result
@@ -54,7 +55,7 @@ class AsyncPipeline:
 async def main():
     pipeline = AsyncPipeline(2, "test-run-sid")
     questions = ["What are the latest protests in America?" for _ in range(3)]
-    ans = await pipeline.run_batch(questions)
+    ans = await pipeline.run_batch(questions, "clickhouse")
     print(ans)
 
 if __name__ == "__main__":

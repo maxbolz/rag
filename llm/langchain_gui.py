@@ -363,11 +363,12 @@ with tab2:
                 query=query,
                 batch_size=batch_size,
                 max_workers=max_workers,
-                run_id=run_id
+                run_id=run_id,
+                database=final_batch_db  # Pass the selected database
             )
 
             # Pass database parameter if your controller supports it
-            result = asyncio.run(controller.answer_question_batch(request, database=final_batch_db))
+            result = asyncio.run(controller.answer_question_batch(request))
  
             placeholder.empty()
 
@@ -445,11 +446,12 @@ with tab3:
             request = MultiBatchRequest(
                 queries=queries,
                 max_workers=max_workers_multi,
-                run_id=run_id_multi
+                run_id=run_id_multi,
+                database=final_multi_db  # Pass the selected database
             )
 
             # Pass database parameter if your controller supports it
-            result = asyncio.run(controller.answer_questions_multi_batch(request, database=final_multi_db))
+            result = asyncio.run(controller.answer_questions_multi_batch(request))
 
             placeholder.empty()
 

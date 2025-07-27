@@ -11,12 +11,14 @@ class BatchQuestionRequest(BaseModel):
     batch_size: Optional[int] = Field(10, ge=1, le=100)
     max_workers: Optional[int] = Field(2, ge=1, le=10)
     run_id: Optional[str] = Field("test-run-1")
+    database: Optional[str] = Field("clickhouse", description="Database to use for the query")
 
 
 class MultiBatchRequest(BaseModel):
     queries: List[str] = Field(..., min_items=1, max_items=50)
     max_workers: Optional[int] = Field(2, ge=1, le=10)
     run_id: Optional[str] = Field("multi-batch-run")
+    database: Optional[str] = Field("clickhouse", description="Database to use for the queries")
 
 
 class LangchainController:
@@ -60,7 +62,7 @@ class LangchainController:
             async_pipeline = AsyncPipeline(request.max_workers, request.run_id)
             start_time = time.time()
             queries = [request.query] * request.batch_size
-            answers = await async_pipeline.run_batch(queries)
+            answers = await async_pipeline.run_batch(queries, request.database)
             end_time = time.time()
             total_duration = end_time - start_time
 
@@ -94,7 +96,7 @@ class LangchainController:
         try:
             async_pipeline = AsyncPipeline(request.max_workers, request.run_id)
             start_time = time.time()
-            answers = await async_pipeline.run_batch(request.queries)
+            answers = await async_pipeline.run_batch(request.queries, request.database)
             end_time = time.time()
             total_duration = end_time - start_time
 
