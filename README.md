@@ -68,6 +68,10 @@ Run `uvicorn services.postgres_controller:app --reload`.
 
 Run `uvicorn services.clickhouse_controller:app --reload`.
 
+## Local Clickhouse
+
+Run `uvicorn services.cassandra.cassandra_controller:app --reload`
+
 ## Local Grafana
 
 1. `cd` into the `llm` folder.
