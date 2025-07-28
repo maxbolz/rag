@@ -12,6 +12,8 @@ from llm_utils.langchain_controller import LangchainController, BatchQuestionReq
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
+DURATION_METRICS_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753395832378&to=1753417432378&timezone=browser&panelId=1&__feature.dashboardSceneSolo=true"
+TOKEN_METRICS_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753645594350&to=1753667194350&timezone=browser&panelId=2&__feature.dashboardSceneSolo=true"
 
 # Database options - customize these based on your available databases
 DATABASE_OPTIONS = [
@@ -294,7 +296,7 @@ if show_debug:
 
 st.title("RAGuardian")
 
-tab1, tab2, tab3 = st.tabs(["Single Query", "Bulk Query", "Multi Query"])
+tab1, tab2, tab3, tab4 = st.tabs(["Single Query", "Bulk Query", "Multi Query", "Metrics"])
 
 with tab1:
     col1, col2 = st.columns([7, 1])
@@ -663,3 +665,17 @@ with tab3:
                 "database": final_multi_db
             }})
             st.warning("Please enter at least one valid query.")
+
+
+with tab4:
+    tab4a, tab4b = st.tabs(["Duration Metrics", "Token Metrics"])
+
+    with tab4a:
+        st.components.v1.html(
+            f'<iframe src="{DURATION_METRICS_URL}" width="1000" height="600" frameborder="0"></iframe>',
+            height=600)
+
+    with tab4b:
+        st.components.v1.html(
+            f'<iframe src="{TOKEN_METRICS_URL}" width="1000" height="600" frameborder="0"></iframe>',
+            height=600)
