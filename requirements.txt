@@ -1,16 +1,15 @@
-clickhouse_connect==0.8.18
-
 # Postgres dependencies 
-fastapi==0.116.1
-pgvector==0.4.1
-psycopg>=3.0
-pydantic==2.11.7
-python-dotenv==1.1.1
-Requests==2.32.4
-sentence_transformers==5.0.0
-uvicorn==0.35.0
+#fastapi==0.116.1
+#pgvector==0.4.1
+#psycopg>=3.0
+#no? pydantic==2.11.7
+#python-dotenv==1.1.1
+#Requests==2.32.4
+#sentence_transformers==5.0.0
+#uvicorn==0.35.0
 
 # LangChain dependencies
+#clickhouse_connect==0.8.18
 langchain~=0.3.26
 langchain-community
 langchain-core
@@ -21,6 +20,9 @@ langsmith
 langchain-anthropic
 beautifulsoup4~=4.13.4
 anthropic~=0.58.2
+
+# Cassandra dependencies
+cassandra-driver
 
 numpy~=2.0.2
 pillow~=11.3.0
@@ -63,3 +65,4 @@ pgvector~=0.4.1
 streamlit~=1.47.0
 tornado~=6.5.1
 pandas~=2.3.1
+
