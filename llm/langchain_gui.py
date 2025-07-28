@@ -595,7 +595,7 @@ with tab3:
             )
             
             # Log the request object
-            request_dict = request.dict()
+            request_dict = request.model_dump()
 
             start_time = time.time()
             try:
