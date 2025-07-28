@@ -37,10 +37,13 @@ def wait_for_grafana(session):
 
 
 def create_datasource(session):
+    host = os.getenv("CLICKHOUSE_HOST")
+    port = os.getenv("CLICKHOUSE_PORT")
     payload = {
         "name": "ClickHouse",
         "type": "grafana-clickhouse-datasource",
         "access": "proxy",
+        "url": f"http://{host}:{port}",  # adjust in .env
         "url": f"http://{CLICKHOUSE_HOST}:{CLICKHOUSE_PORT}",
         "basicAuth": False,
         "jsonData": {

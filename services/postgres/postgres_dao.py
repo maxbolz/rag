@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 import os
 import logging
 from dotenv import load_dotenv
-from scripts.pull_docs import pull_docs
+from pull_docs import pull_docs
 
 # Configure logging
 logging.basicConfig(

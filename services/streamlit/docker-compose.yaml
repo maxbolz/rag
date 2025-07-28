@@ -1,18 +1,34 @@
 services:
+  langchain:
+    build:
+      context: ../..
+      dockerfile: services/streamlit/Dockerfile
+    container_name: rag-langchain
+    command: uvicorn llm_utils.langchain_controller:app --host 0.0.0.0 --port 8002
+    ports:
+      - 8002:8002
+    volumes:
+      - ../../.env:/app/.env
+      - ../../llm:/app/
+      - ./requirements.txt:/app/requirements.txt
+      - ../../.streamlit:/app/.streamlit
+    restart: unless-stopped
   ui:
     build:
       context: ../..
       dockerfile: services/streamlit/Dockerfile
     container_name: rag-ui
+    command: streamlit run langchain_gui.py --server.port=8501 --server.address=0.0.0.0
     ports:
       - 8501:8501
     volumes:
       - ../../.env:/app/.env
-      - ../../llm:/app/llm
+      - ../../llm:/app/
       - ./requirements.txt:/app/requirements.txt
       - ../../.streamlit:/app/.streamlit
+    depends_on:
+      - langchain
     restart: unless-stopped
-
   grafana:
     image: grafana/grafana-oss
     container_name: grafana
@@ -27,7 +43,8 @@ services:
       - GF_LOG_FILTERS=resource-migrator=warn deletion-marker-migrator=warn
       - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
     restart: unless-stopped
-
+    depends_on:
+      - ui
   grafana-provisioner:
     build:
       context: ./provisioner
@@ -42,3 +59,4 @@ services:
     restart: "no"
     networks:
       - default
+    env_file: "../../.env"

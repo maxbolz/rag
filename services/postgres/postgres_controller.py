@@ -1,7 +1,7 @@
 import time
 from fastapi import FastAPI
-from services.postgres.postgres_dao import PostgresDao
-from scripts.pull_docs import pull_docs
+from postgres_dao import PostgresDao
+from pull_docs import pull_docs
 import logging
 
 app = FastAPI()
