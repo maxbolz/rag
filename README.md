@@ -66,7 +66,7 @@ Run `docker compose build`(if not built previously) & `docker compose up` in rag
 
 ## Local PostgreSQL
 
-Run `uvicorn services.postgres_controller:app --reload`.
+Run `uvicorn services.postgres_controller:app --reload --port 8001`.
 
 (You will need to activate your venv & `pip install -r requirements.txt`)
 
@@ -75,7 +75,7 @@ To use streamlit with this local server, specify `LOCAL_API_SERVER = true` in yo
 
 ## Local Clickhouse
 
-Run `uvicorn services.clickhouse_controller:app --reload`.
+Run `uvicorn services.clickhouse_controller:app --reload --port 8000`.
 
 (You will need to activate your venv & `pip install -r requirements.txt`)
 
