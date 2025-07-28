@@ -11,6 +11,7 @@ services:
       - ../../.env:/app/.env
       - ../../llm:/app/
       - ./requirements.txt:/app/requirements.txt
+      - ../../.streamlit:/app/.streamlit
     restart: unless-stopped
   
   ui:
