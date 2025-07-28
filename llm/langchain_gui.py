@@ -501,8 +501,8 @@ with tab2:
                 ''', unsafe_allow_html=True)
 
                 for i, answer in enumerate(answers):
-                    context = answer[1].get("context", [])
-                    answer_text = answer[1].get("answer", "")
+                    context = answer.get("context", [])
+                    answer_text = answer.get("answer", "")
                     placeholder.markdown(f'''
                         <div class="chat-container answer-fadein" style="opacity:0;">
                             <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
