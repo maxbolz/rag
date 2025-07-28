@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Set working directory
 WORKDIR /app
 
-# Copy all app code into the container
-COPY ./llm/requirements.txt .
+# Copy the Streamlit service requirements file
+COPY services/streamlit/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt

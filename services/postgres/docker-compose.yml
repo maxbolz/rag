@@ -35,7 +35,7 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
     volumes:
       - ../../scripts/:/app/scripts
-      - ../../requirements.txt:/app/requirements.txt
+      - ./requirements.txt:/app/requirements.txt
       - ../../services/postgres:/app/services/postgres
       - ../../.env:/app/.env
 

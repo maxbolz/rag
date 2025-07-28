@@ -9,5 +9,5 @@ services:
     volumes:
       - ../../.env:/app/.env
       - ../../llm:/app/llm
-      - ../../llm/requirements.txt:/app/requirements.txt
+      - ./requirements.txt:/app/requirements.txt
     restart: unless-stopped
