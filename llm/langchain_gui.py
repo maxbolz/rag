@@ -496,7 +496,7 @@ with tab2:
 
                 answers = result.get("answers", [])
                 total_duration = result.get("total_duration", 0)
-                placeholder.markdown(f'''
+                st.markdown(f'''
                     <div class="label answer-fadein">Database: {final_batch_db}</div>
                     <div class="label answer-fadein">Batch Size: {batch_size}</div>
                     <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
@@ -505,7 +505,7 @@ with tab2:
                 for i, answer in enumerate(answers):
                     context = answer.get("context", [])
                     answer_text = answer.get("answer", "")
-                    placeholder.markdown(f'''
+                    st.markdown(f'''
                         <div class="chat-container answer-fadein" style="opacity:0;">
                             <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
                             <div class="result-bubble">
