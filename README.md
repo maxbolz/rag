@@ -60,13 +60,31 @@ Use the `POST` endpoint on the Docker container to upload articles to either dat
 
 If you're hosting a shared database, run `docker compose up --build`; this loads up the app with uvicorn at `0.0.0.0:8000`.
 
+#### Streamlit (Docker)
+
+Run `docker compose build`(if not built previously) & `docker compose up` in rag/services/streamlit
+
+#### Streamlit (Locally)
+
+Ensure you've pip installed requirements in your local virtual env. 
+
+On Mac, run the script at dev/run.sh 
+
+On Windows, run the script at dev/run.bat (by clicking it in file explorer)
+
+
 ## Local PostgreSQL
 
-Run `uvicorn services.postgres_controller:app --reload`.
+Run `uvicorn services.postgres_controller:app --reload --port 8001`.
+
+(You will need to activate your venv & `pip install -r requirements.txt`)
+
 
 ## Local Clickhouse
 
-Run `uvicorn services.clickhouse_controller:app --reload`.
+Run `uvicorn services.clickhouse_controller:app --reload --port 8000`.
+
+(You will need to activate your venv & `pip install -r requirements.txt`)
 
 ## Local Cassandra
 

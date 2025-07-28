@@ -205,7 +205,7 @@ controller = LangchainController()
 
 
 def run_api():
-    uvicorn.run(controller.app, host="0.0.0.0", port=8001, log_level="info")
+    uvicorn.run(controller.app, host="0.0.0.0", port=8002, log_level="info")
 
 
 api_thread = threading.Thread(target=run_api, daemon=True)

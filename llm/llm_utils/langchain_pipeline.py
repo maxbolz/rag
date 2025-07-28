@@ -8,6 +8,7 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from pydantic import SecretStr
 import requests
+from enum import Enum
 
 # === LangGraph imports ===
 from langgraph.graph import StateGraph, START
@@ -15,6 +16,14 @@ from typing_extensions import TypedDict
 
 load_dotenv()
 
+class AvailableRAGDatabases(Enum):
+    CLICKHOUSE = "clickhouse"
+    POSTGRES = "postgres"
+
+PORT_MAPPING = { 
+    AvailableRAGDatabases.CLICKHOUSE: 8000,
+    AvailableRAGDatabases.POSTGRES: 8001
+}
 
 # 1. Define the shared state for orchestration
 class State(TypedDict):
@@ -26,12 +35,12 @@ class State(TypedDict):
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
     # Choose port based on database type
-    if os.getenv("DATABASE_TYPE", "").lower() == "clickhouse":
-        port = 8000  # Port from clickhouse docker-compose
-    elif os.getenv("DATABASE_TYPE", "").lower() == "postgres":
-        port = 8001  # Port from postgres docker-compose
+    port = PORT_MAPPING[AvailableRAGDatabases(os.getenv("DATABASE_TYPE", "").lower())]
+    logging.info(f"Using port {port} for {AvailableRAGDatabases(os.getenv('DATABASE_TYPE', '').lower())}")
 
-    docs = requests.get(f"http://{os.getenv('HOST', 'localhost')}:{port}/related-articles?query={state['question']}").json()
+    # hostname is based on local machine or docker
+    hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+    docs = requests.get(f"http://{hostname}:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
