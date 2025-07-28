@@ -46,7 +46,10 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
     """)
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
     rows = session.execute(f"""
         SELECT index_name FROM system_schema.indexes
         WHERE keyspace_name = '{keyspace}' AND table_name = 'articles';
@@ -60,6 +63,9 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
             USING 'StorageAttachedIndex';
         """)
 
+<<<<<<< HEAD
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
 >>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
     model = SentenceTransformer("all-MiniLM-L6-v2")
     articles_inserted = 0

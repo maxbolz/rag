@@ -34,14 +34,20 @@ CLICKHOUSE_PASSWORD="<your-password>"
 GUARDIAN_API_KEY="<your-key>"
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 HOST="localhost" or shared IP address holding the container 
 =======
+=======
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
 ANTHROPIC_API_KEY="<your-key>"
 LANGSMITH_TRACING="true"
 LANGSMITH_API_KEY="<your-key>"
 
 DATABASE_TYPE="<name of database>"
 HOST="localhost" or shared IPv4 address 
+<<<<<<< HEAD
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
 >>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
 ```
 

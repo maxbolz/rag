@@ -31,9 +31,13 @@ services:
       - CASSANDRA_KEYSPACE=vectorembeds
     volumes:
 <<<<<<< HEAD
+<<<<<<< HEAD
       - ../../scripts/:/app/scripts
       - ../../requirements.txt:/app/requirements.txt
       - ../../services/cassandra:/app/services/cassandra
+=======
+      - ../..:/app
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
 =======
       - ../..:/app
 >>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819

@@ -99,7 +99,11 @@ def retrieve(state: State) -> Dict[str, Any]:
 
     # hostname is based on local machine or docker
 <<<<<<< HEAD
+<<<<<<< HEAD
     hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", "true") == "true" else "host.docker.internal"
+=======
+    hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
 =======
     hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
 >>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
