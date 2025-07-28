@@ -8,7 +8,7 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from pydantic import SecretStr
 import requests
-from llm.langchain_metrics import LangchainMetrics
+from langchain_metrics import LangchainMetrics
 from langchain_core.callbacks.base import BaseCallbackHandler
 from langchain_core.runnables import RunnableSequence
 from typing_extensions import TypedDict

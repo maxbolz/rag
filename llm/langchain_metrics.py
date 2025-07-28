@@ -94,9 +94,14 @@ class LangchainMetrics:
         start_time = start_time.astimezone(timezone('Australia/Sydney'))
         end_time = end_time.astimezone(timezone('Australia/Sydney'))
 
+        # Handle lambda names by replacing with "retrieve"
+        run_name = str(run.name) if run.name else ""
+        if run_name == "<lambda>":
+            run_name = "retrieve"
+            
         row = [
             str(run.id),
-            str(run.name) if run.name else "",
+            run_name,
             str(run.status) if run.status else "",
             int(run.total_tokens) if run.total_tokens is not None else 0,
             float(run.total_cost) if run.total_cost is not None else 0.0,

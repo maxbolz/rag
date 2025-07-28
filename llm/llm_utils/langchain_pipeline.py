@@ -13,7 +13,10 @@ from enum import Enum
 # === LangGraph imports ===
 from langgraph.graph import StateGraph, START
 from typing_extensions import TypedDict
-from llm.langchain_metrics import LangchainMetrics
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from langchain_metrics import LangchainMetrics
 from langchain_core.callbacks.base import BaseCallbackHandler
 
 load_dotenv()
