@@ -9,35 +9,6 @@ from datetime import datetime
 from llm_utils.langchain_pipeline import Database
 from llm_utils.langchain_controller import LangchainController, BatchQuestionRequest, MultiBatchRequest
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('streamlit_app.log'),
-        logging.StreamHandler()
-    ]
-)
-
-# Create logger for this module
-logger = logging.getLogger('StreamlitApp')
-
-# Add a custom formatter for better readability
-class CustomFormatter(logging.Formatter):
-    def __init__(self):
-        super().__init__()
-        
-    def format(self, record):
-        if hasattr(record, 'user_data'):
-            # Format user data nicely
-            user_data = json.dumps(record.user_data, indent=2)
-            return f"{record.asctime} - {record.levelname} - {record.getMessage()}\nData: {user_data}"
-        return f"{record.asctime} - {record.levelname} - {record.getMessage()}"
-
-# Set up file handler with custom formatter
-file_handler = logging.FileHandler('streamlit_debug.log')
-file_handler.setFormatter(CustomFormatter())
-logger.addHandler(file_handler)
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
@@ -67,7 +38,6 @@ def log_api_call(operation_type, input_data, result_data=None, error=None, durat
     if error:
         log_data["error"] = str(error)
     
-    logger.info(f"API Call - {operation_type}", extra={"user_data": log_data})
     
     # Also log to Streamlit sidebar for real-time debugging
     with st.sidebar:
@@ -83,7 +53,6 @@ def log_user_interaction(interaction_type, details):
         "interaction_type": interaction_type,
         "details": details
     }
-    logger.info(f"User Interaction - {interaction_type}", extra={"user_data": log_data})
 
 # --- Custom styles ---
 st.markdown(f"""
@@ -299,7 +268,6 @@ button[data-baseweb="tab"][aria-selected="true"] {{
 """, unsafe_allow_html=True)
 
 # Initialize controller
-logger.info("Initializing LangchainController")
 controller = LangchainController()
 
 # Sidebar for debug controls
@@ -375,7 +343,6 @@ with tab1:
             
             start_time = time.time()
             try:
-                logger.info(f"Starting single query API call", extra={"user_data": input_data})
                 
                 # Pass final_db as the database parameter
                 result = controller.answer_question(user_input, database=final_db)
@@ -424,7 +391,6 @@ with tab1:
                 
             except Exception as e:
                 duration = time.time() - start_time
-                logger.error(f"Single query API call failed", extra={"user_data": {"error": str(e), "input": input_data}})
                 log_api_call("Single Query", input_data, error=e, duration=duration)
                 
                 placeholder.markdown(f'''
@@ -499,11 +465,9 @@ with tab2:
             
             # Log the request object
             request_dict = request.dict()
-            logger.info(f"Created BatchQuestionRequest", extra={"user_data": request_dict})
 
             start_time = time.time()
             try:
-                logger.info(f"Starting batch query API call", extra={"user_data": request_dict})
                 
                 result = asyncio.run(controller.answer_question_batch(request))
                 
@@ -550,7 +514,6 @@ with tab2:
                     
             except Exception as e:
                 duration = time.time() - start_time
-                logger.error(f"Batch query API call failed", extra={"user_data": {"error": str(e), "request": request_dict}})
                 log_api_call("Batch Query", request_dict, error=e, duration=duration)
                 
                 placeholder.markdown(f'''
@@ -624,11 +587,9 @@ with tab3:
             
             # Log the request object
             request_dict = request.dict()
-            logger.info(f"Created MultiBatchRequest", extra={"user_data": request_dict})
 
             start_time = time.time()
             try:
-                logger.info(f"Starting multi-batch query API call", extra={"user_data": request_dict})
                 
                 result = asyncio.run(controller.answer_questions_multi_batch(request))
                 
@@ -679,7 +640,6 @@ with tab3:
                     
             except Exception as e:
                 duration = time.time() - start_time
-                logger.error(f"Multi-batch query API call failed", extra={"user_data": {"error": str(e), "request": request_dict}})
                 log_api_call("Multi-Batch Query", request_dict, error=e, duration=duration)
                 
                 placeholder.markdown(f'''
@@ -694,11 +654,3 @@ with tab3:
                 "database": final_multi_db
             }})
             st.warning("Please enter at least one valid query.")
-
-# Log session info at startup
-if 'session_logged' not in st.session_state:
-    logger.info("New Streamlit session started", extra={"user_data": {
-        "database_options": DATABASE_OPTIONS,
-        "timestamp": datetime.now().isoformat()
-    }})
-    st.session_state.session_logged = True
