@@ -8,16 +8,13 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from pydantic import SecretStr
 import requests
-<<<<<<< HEAD
-from llm.langchain_metrics import LangchainMetrics
-from langchain_core.callbacks.base import BaseCallbackHandler
-=======
 from enum import Enum
->>>>>>> 67719a3242105152268b66ef0a7192122bf13992
 
 # === LangGraph imports ===
 from langgraph.graph import StateGraph, START
 from typing_extensions import TypedDict
+from llm.langchain_metrics import LangchainMetrics
+from langchain_core.callbacks.base import BaseCallbackHandler
 
 load_dotenv()
 
@@ -97,25 +94,11 @@ class RunIdCollector(BaseCallbackHandler):
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
     # Choose port based on database type
-<<<<<<< HEAD
-    database_type = os.getenv("DATABASE_TYPE", "")
-    print(f"DEBUG: DATABASE_TYPE is '{database_type}'")
-    
-    if database_type.lower() == "clickhouse":
-        port = 8000  # Port from clickhouse docker-compose
-        print(f"DEBUG: Using ClickHouse port {port}")
-    elif database_type.lower() == "postgres":
-        port = 8001  # Port from postgres docker-compose
-        print(f"DEBUG: Using PostgreSQL port {port}")
-    else:
-        raise ValueError(f"DATABASE_TYPE must be either clickhouse or postgres, got '{database_type}'")
-=======
     port = PORT_MAPPING[AvailableRAGDatabases(os.getenv("DATABASE_TYPE", "").lower())]
     logging.info(f"Using port {port} for {AvailableRAGDatabases(os.getenv('DATABASE_TYPE', '').lower())}")
->>>>>>> 67719a3242105152268b66ef0a7192122bf13992
 
     # hostname is based on local machine or docker
-    hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+    hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", "true") == "true" else "host.docker.internal"
     docs = requests.get(f"http://{hostname}:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
