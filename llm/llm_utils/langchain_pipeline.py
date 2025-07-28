@@ -30,10 +30,6 @@ def retrieve(state: State) -> Dict[str, Any]:
         port = 8000  # Port from clickhouse docker-compose
     elif os.getenv("DATABASE_TYPE", "").lower() == "postgres":
         port = 8001  # Port from postgres docker-compose
-    elif os.getenv("DATABASE_TYPE", "").lower() == "cassandra":
-        port = 8003  # Port from cassandra docker-compose
-    else:
-        raise ValueError(f"Unsupported DATABASE_TYPE")
 
     docs = requests.get(f"http://{os.getenv('HOST', 'localhost')}:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents

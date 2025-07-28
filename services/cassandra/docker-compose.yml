@@ -19,7 +19,7 @@ services:
     build:
       context: ../..
       dockerfile: services/cassandra/Dockerfile
-    container_name: rag-app
+    container_name: rag-cassandra-app
     depends_on:
       - db
     ports:
