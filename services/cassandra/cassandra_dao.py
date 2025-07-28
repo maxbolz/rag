@@ -55,7 +55,7 @@ class CassandraDao:
             emb = self.model.encode(query).tolist()
 
             query_cql = """
-                SELECT url, title, body, publication_date, vector
+                SELECT url, title, body, publication_date
                 FROM articles
                 ORDER BY vector ANN OF ?
                 LIMIT ?
@@ -64,7 +64,7 @@ class CassandraDao:
             prepared = self.client.prepare(query_cql)
             rows = self.client.execute(prepared, (emb, limit))
 
-            results = [(row.url, row.title, row.body, row.publication_date, row.vector) for row in rows]
+            results = [(row.url, row.title, row.body, row.publication_date, "No Similarity Score") for row in rows]
 
             if not results:
                 raise HTTPException(404, "No matches found")
