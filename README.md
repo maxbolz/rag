@@ -66,6 +66,24 @@ Run `uvicorn services.postgres_controller:app --reload`.
 
 Run `uvicorn services.clickhouse_controller:app --reload`.
 
+## Local Grafana
+
+1. `cd` into the `llm` folder.
+2. Run `docker-compose up`; this will create a Docker container for Grafana on port `3000`.
+3. In your browser, open `localhost:3000`, and login using username `admin` and password `admin`.
+4. Add a new data source with the following parameters:
+   1. **Server address**: the IP of your container.
+   2. **Server port**: `8123`
+   3. **Protocol**: `HTTP`
+   4. **Skip TLS Verify**: `true`
+   5. **Username**: `user`
+   6. **Password**: `default`
+   7. **Default database**: `guardian`
+   8. **Default table**: `langchain_metrics`
+5. Save and test the data source, and verify it connects successfully.
+6. Import `dashboard.json` from the `llm` folder.
+7. You should now have a local Grafana with metrics data; the metrics tab on the Streamlit application should now also work.
+
 # Endpoints
 
 ## GET
