@@ -356,8 +356,8 @@ with tab1:
             try:
                 
                 # Pass final_db as the database parameter
-                result = controller.answer_question(user_input, database=final_db)
-                
+                result = asyncio.run(controller.answer_question_batch(BatchQuestionRequest(query=user_input, database=final_db, batch_size=1, max_workers=1, run_id="test-run-1")))
+
                 duration = time.time() - start_time
                 
                 # Log successful API call
@@ -372,8 +372,8 @@ with tab1:
 
                 response = result
                 time_taken = response.get('total_duration')
-                answer = response.get("answer").get("answer", "")
-                context = response.get("answer").get("context", [])
+                answer = response.get("answers")[0].get("answer", "")
+                context = response.get("answers")[0].get("context", [])
 
                 placeholder.markdown(f'''
                     <div class="chat-container answer-fadein" style="opacity:0;">
