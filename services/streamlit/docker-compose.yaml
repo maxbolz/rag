@@ -57,3 +57,4 @@ services:
       - GRAFANA_USER=admin
       - GRAFANA_PASS=admin
     restart: "no"
+    env_file: "../../.env"

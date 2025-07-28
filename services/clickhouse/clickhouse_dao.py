@@ -39,8 +39,8 @@ class ClickhouseDao:
         """Connect to ClickHouse database"""
         try:
             self.client = clickhouse_connect.get_client(
-                host='10.0.100.92',
-                port=8123,
+                host=os.getenv("CLICKHOUSE_HOST"),
+                port=os.getenv("CLICKHOUSE_PORT", 8123),
                 username='user',
                 password='default',
                 database='guardian'
