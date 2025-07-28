@@ -22,6 +22,9 @@ langchain-anthropic
 beautifulsoup4~=4.13.4
 anthropic~=0.58.2
 
+# Cassandra dependencies
+cassandra-driver
+
 numpy~=2.0.2
 pillow~=11.3.0
 pip~=22.3.1
@@ -63,3 +66,4 @@ pgvector~=0.4.1
 streamlit~=1.47.0
 tornado~=6.5.1
 pandas~=2.3.1
+
