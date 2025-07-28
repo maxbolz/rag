@@ -11,11 +11,11 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from langchain_pipeline import RAGApplication
 
 class AsyncPipeline:
-    def __init__(self, max_concurrency: int = 8, run_name: str = "batch_demo", tags = ["batching"], database: str = "clickhouse"):
+    def __init__(self, max_concurrency: int = 8, run_name: str = "batch_demo", database: str = "clickhouse"):
         self.app = RAGApplication(name="")
         self.max_concurrency = max_concurrency
         self.run_name = run_name
-        self.tags = tags
+        self.tags = [database]
         self.database = database 
         self.run_time = time.time()
         self.config = RunnableConfig(

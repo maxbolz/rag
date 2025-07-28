@@ -131,7 +131,8 @@ class RAGApplication:
                 raise ValueError(f"Invalid database: {database}. Must be one of {[db.value[0] for db in Database]}.")
             
             result_state = self.graph.invoke({"question": question,
-                                              "port": Database[database.upper()].value[1]})
+                                              "port": Database[database.upper()].value[1],
+                                              "config": {"tags": [f"{database}"]}})
             # unpack
             answer = result_state["answer"]
             docs: List[Document] = result_state["context"]
