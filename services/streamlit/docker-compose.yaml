@@ -40,3 +40,5 @@ services:
       - GRAFANA_USER=admin
       - GRAFANA_PASS=admin
     restart: "no"
+    networks:
+      - default

@@ -8,6 +8,13 @@ USERNAME = os.getenv("GRAFANA_USER", "admin")
 PASSWORD = os.getenv("GRAFANA_PASS", "admin")
 DASHBOARD_PATH = "dashboard.json"
 
+# ClickHouse connection details
+CLICKHOUSE_HOST = os.getenv("CLICKHOUSE_HOST", "10.0.100.92")
+CLICKHOUSE_PORT = os.getenv("CLICKHOUSE_PORT", "8123")
+CLICKHOUSE_DATABASE = os.getenv("CLICKHOUSE_DATABASE", "guardian")
+CLICKHOUSE_USER = os.getenv("CLICKHOUSE_USER", "user")
+CLICKHOUSE_PASSWORD = os.getenv("CLICKHOUSE_PASSWORD", "default")
+
 MAX_RETRIES = 10
 RETRY_DELAY = 3  # seconds
 
@@ -34,19 +41,19 @@ def create_datasource(session):
         "name": "ClickHouse",
         "type": "grafana-clickhouse-datasource",
         "access": "proxy",
-        "url": "http://10.0.100.92:8123",  # Adjust as needed
+        "url": f"http://{CLICKHOUSE_HOST}:{CLICKHOUSE_PORT}",
         "basicAuth": False,
         "jsonData": {
-            "defaultDatabase": "guardian",
-            "port": 8123,
-            "username": "user",
-            "server": "10.0.100.92",  # 👈 required
+            "defaultDatabase": CLICKHOUSE_DATABASE,
+            "port": int(CLICKHOUSE_PORT),
+            "username": CLICKHOUSE_USER,
+            "server": CLICKHOUSE_HOST,
             "secure": False,
             "protocol": "http",
             "skip-tls-verify": True
         },
         "secureJsonData": {
-            "password": "default"
+            "password": CLICKHOUSE_PASSWORD
         },
         "isDefault": True
     }

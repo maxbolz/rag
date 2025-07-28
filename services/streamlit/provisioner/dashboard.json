@@ -24,7 +24,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "__datasource__"
+        "uid": "ClickHouse"
       },
       "fieldConfig": {
         "defaults": {
@@ -126,7 +126,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "__datasource__"
+        "uid": "ClickHouse"
       },
       "fieldConfig": {
         "defaults": {
@@ -206,7 +206,7 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "__datasource__"
+            "uid": "ClickHouse"
           },
           "editorType": "sql",
           "format": 1,

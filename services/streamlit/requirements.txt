@@ -1,5 +1,6 @@
 # Streamlit service requirements
 anthropic==0.59.0
+clickhouse_connect==0.8.18
 fastapi==0.116.1
 langchain==0.3.27
 langchain_anthropic==0.3.17
