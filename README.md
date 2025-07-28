@@ -1,4 +1,3 @@
-```
 ░█████████     ░███      ░██████     ░███████   ░████████              
 ░██     ░██   ░██░██    ░██   ░██    ░██   ░██  ░██    ░██             
 ░██     ░██  ░██  ░██  ░██           ░██    ░██ ░██    ░██   ░███████  
@@ -8,39 +7,63 @@
 ░██     ░██ ░██    ░██   ░█████░█    ░███████   ░█████████   ░███████  
 ```
 
-# Usage
+# RAG Database Benchmarking Suite
 
-This repository can be used to measure the metrics of various vector databases.
+This repository is designed for **benchmarking popular Retrieval-Augmented Generation (RAG) databases**. It enables you to:
 
-# Setup
+- **Measure latency** for reading and writing data to various vector databases.
+- **Visualize metrics** and compare performance using a built-in Streamlit dashboard and Grafana.
+- **Easily extend** the framework to support new database providers.
+- **Modify and experiment** with the codebase to suit your research or production needs.
 
-1. Get a Guardian API key [here](https://bonobo.capi.gutools.co.uk/register/developer).
+---
 
-2. Create a `.env` file at the project root in the same directory as the `.git` folder with the following fields:
+## Features
 
+- **Streamlit Dashboard**: Query databases, visualize results, and compare metrics interactively.
+- **Extensible Structure**: Add new database providers with minimal code changes.
+- **Dockerized Services**: Each database runs in its own Docker service for easy setup and isolation.
+- **Metrics Visualization**: Out-of-the-box Grafana dashboard for latency and token usage.
+
+---
+
+## Quick Start
+
+### 1. Clone & Install
+
+**Note:** You need to have Docker installed
+
+```bash
+git clone <this-repo>
+cd rag
 ```
-# PostgreSQL
-POSTGRES_DB="guardian"
-POSTGRES_USER="postgres"
-POSTGRES_PASSWORD="<your-password>"
-POSTGRES_HOST="localhost"
-POSTGRES_PORT=5432
 
-# Clickhouse 
-CLICKHOUSE_DB=guardian
-CLICKHOUSE_USER=default
-CLICKHOUSE_PASSWORD="<your-password>"
-CLICKHOUSE_HOST="<your-host-ip>"
-CLICKHOUSE_PORT=8123
+**Set up LangChain and LangSmith**
 
-# Cassandra
-CASSANDRA_HOST=127.0.0.1
-CASSANDRA_PORT=9042
-CASSANDRA_KEYSPACE=vectorembeds
+To visualize metrics, you will need to set up Langchain/Langsmith tracking. It is free and easy.
 
-GUARDIAN_API_KEY="<your-key>"
+1. Create Langchain Account
+2. Get API Key
+3. Create a project
 
-ANTHROPIC_API_KEY="<your-key>"
+Keep note of your API Key and Project name, you will need those later.
+
+
+### 2. Environment Setup
+
+Create a `.env` file in the project root:
+
+```env
+# Guardian API related information
+GUARDIAN_API_KEY=<your key here>
+
+# Claude related information
+ANTHROPIC_API_KEY=<your key here>
+
+# Langsmith related information
+LANGSMITH_API_KEY=<your key here>
+LANGSMITH_ENDPOINT="https://api.smith.langchain.com"
+LANGSMITH_PROJECT=<name of your langsmith project>
 LANGSMITH_TRACING="true"
 LANGSMITH_API_KEY="<your-key>"
 
@@ -137,4 +160,79 @@ curl -X POST "http://localhost:8000/upload-articles"
 
 # License
 
+# POSTGRES related information
+POSTGRES_DB=<name of your database>
+POSTGRES_USER=<name of your user to log in with the client>
+POSTGRES_PASSWORD=<password of the user>
+POSTGRES_PORT=<port postgres will run on, normally 5432>
+```
+
+#### 3. Run Services
+
+You have the option to choose between ClickHouse, PostgreSQL, and Cassandra as databases to use in benchmarking.
+
+You can run any of them by the following (this example sets up ClickHouse):
+
+```bash
+cd services/clickhouse
+docker compose up --build
+```
+
+```bash
+cd services/streamlit
+docker compose up --build
+```
+
+Your streamlit application should now be running. 
+
+### 4. Visualize Metrics with Grafana
+
+- The Streamlit service automatically creates a Grafana dashboard within the app, accessble at `https://localhost:8501`.
+
+---
+
+## Benchmarking & Querying
+
+- Use the Streamlit dashboard to run queries against any configured database.
+- Latency and token usage metrics are automatically collected and visualized.
+- You can choose from Single Question, Multi Batch Question (simulating concurrent users), and Multi Batch Multi Questions (simulating multiple users with different questions).
+
+---
+
+## Adding a New Database Provider
+
+1. **Create a new folder** under `/services` (e.g., `/services/mydb`).
+2. **Add your Docker setup** (`Dockerfile`, `docker-compose.yml`) and controller/DAO code.
+3. **Extend the `Database` Enum** in `llm/llm_utils/langchain_pipeline.py`:
+
+   ```python
+   class Database(Enum):
+       CLICKHOUSE = ("clickhouse", 8000)
+       POSTGRES = ("postgres", 8001)
+       CASSANDRA = ("cassandra", 8003)
+       MYDB = ("mydb", <your-port>)
+   ```
+
+4. **Implement your controller** to expose the required endpoints (`/related-articles`, `/upload-articles`).
+5. **Update the dashboard** (if needed) to include your new provider in the selection.
+
+---
+
+## Customization & Extensibility
+
+- The codebase is modular—add new database backends by following the existing service structure.
+- The Streamlit dashboard auto-detects available databases from the `Database` Enum.
+- Metrics collection is built-in; extend or modify as needed for your research.
+
+---
+
+## License
+
 [MIT](https://choosealicense.com/licenses/mit/)
+
+
+---
+
+**Happy benchmarking!**
+
+--- 
