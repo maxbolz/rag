@@ -55,6 +55,7 @@ def retrieve(state: State) -> Dict[str, Any]:
 # 3. Step 2: generate answer with Claude
 def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     # # build context string
+    """IF YOU WANT TO USE THE LLM, SET USE_LLM TO TRUE IN THE .ENV FILE"""
     ctx = "\n\n".join(
         f"Title: {doc.metadata['title']}\n"
         f"Date: {doc.metadata['publication_date']}\n"
@@ -62,28 +63,33 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
         for doc in state["context"]
     )
     prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
-    # response = app.llm.invoke(prompt_str)
-    # return {"answer": response.content}
-    return {"answer": "This is a placeholder answer. Replace with actual generation logic."}
+    if (os.getenv("USE_LLM", "false") == "true"):
+        response = app.llm.invoke(prompt_str)
+        return {"answer": response.content}
+    else:
+        return {"answer": "This is a placeholder answer. Replace with actual generation logic."}
 
 def post(state: State, endpoint_url=None):
     """Post results to the specified endpoint"""
-    # if not endpoint_url:
-    #     hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
-    #     endpoint_url = POST_ENDPOINT_URL.format(port=state.get('port', 8000), hostname=hostname)
-    
-    # try:
-    #     response = requests.post(
-    #         endpoint_url,
-    #         json={},
-    #         timeout=30,
-    #         headers={'Content-Type': 'application/json'}
-    #     )
-    #     response.raise_for_status()
-    #     return {"status": "success", "response": response.json() if response.content else {}}
-    # except requests.exceptions.RequestException as e:
-    #     return {"status": "error", "error": str(e)}
-    return {"status": "success", "response": {"message": "Post step executed successfully"}}
+    """IF YOU WANT TO USE THE POST STEP, SET USE_POST TO TRUE IN THE .ENV FILE"""
+    if (os.getenv("USE_POST", "false") == "true"):
+        if not endpoint_url:
+            hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+            endpoint_url = POST_ENDPOINT_URL.format(port=state.get('port', 8000), hostname=hostname)
+        
+        try:
+            response = requests.post(
+                endpoint_url,
+                json={},
+                timeout=30,
+                headers={'Content-Type': 'application/json'}
+            )
+            response.raise_for_status()
+            return {"status": "success", "response": response.json() if response.content else {}}
+        except requests.exceptions.RequestException as e:
+            return {"status": "error", "error": str(e)}
+    else:
+        return {"status": "success", "response": {"message": "Post step executed successfully"}}
 
 
 class RAGApplication:

@@ -121,6 +121,10 @@ Run `uvicorn services.cassandra.cassandra_controller:app --reload`.
 6. Import `dashboard.json` from the `llm` folder.
 7. You should now have a local Grafana with metrics data; the metrics tab on the Streamlit application should now also work.
 
+## DEV
+If you want to use the LLM and/or use the POST steps of the langchain pipeline, set the variables USE_POST and USE_LLM to "true"
+in your .env file.
+
 # Endpoints
 
 ## GET
