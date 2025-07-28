@@ -18,13 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": null,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "aesy917veeltsd"
+        "uid": "__datasource__"
       },
       "fieldConfig": {
         "defaults": {
@@ -126,7 +126,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "aesy917veeltsd"
+        "uid": "__datasource__"
       },
       "fieldConfig": {
         "defaults": {
@@ -206,7 +206,7 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "aesy917veeltsd"
+            "uid": "__datasource__"
           },
           "editorType": "sql",
           "format": 1,

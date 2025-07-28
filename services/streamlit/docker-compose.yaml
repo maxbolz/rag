@@ -1,7 +1,7 @@
 services:
   langchain:
     build:
-      context: ../..  # or whatever root includes your langchain_ui.py
+      context: ../..
       dockerfile: services/streamlit/Dockerfile
     container_name: rag-langchain
     command: uvicorn llm_utils.langchain_controller:app --host 0.0.0.0 --port 8002
@@ -13,24 +13,20 @@ services:
       - ./requirements.txt:/app/requirements.txt
       - ../../.streamlit:/app/.streamlit
     restart: unless-stopped
-<<<<<<< HEAD
-  
   ui:
     build:
       context: ../..
       dockerfile: services/streamlit/Dockerfile
-    container_name: rag-ui
-    command: streamlit run langchain_gui.py --server.port=8501 --server.address=0.0.0.0
+    container_name: rag-langchain
+    command: uvicorn llm_utils.langchain_controller:app --host 0.0.0.0 --port 8002
     ports:
-      - 8501:8501
-    depends_on:
-      - langchain
+      - 8002:8002
     volumes:
       - ../../.env:/app/.env
       - ../../llm:/app/
       - ./requirements.txt:/app/requirements.txt
+      - ../../.streamlit:/app/.streamlit
     restart: unless-stopped
-=======
   grafana:
     image: grafana/grafana-oss
     container_name: grafana
@@ -40,5 +36,8 @@ services:
       - GF_SECURITY_ALLOW_EMBEDDING=true
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_LOG_FILTERS=resource-migrator=warn deletion-marker-migrator=warn
+      - GF_INSTALL_PLUGINS=grafana-clickhouse-datasource
     restart: unless-stopped
->>>>>>> 1cacb28 (merge composes)
