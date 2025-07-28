@@ -43,8 +43,8 @@ class AsyncPipeline:
 
 
 async def main():
-    pipeline = AsyncPipeline(run_name="test-run-sri", max_concurrency=2, database="clickhouse")
-    questions = ["What are the latest updates on Donald Trump?" for _ in range(3)]
+    pipeline = AsyncPipeline(run_name="test-run-sid", max_concurrency=2, database="clickhouse")
+    questions = ["What are the latest updates on Epstein" for _ in range(3)]
     ans = await pipeline.run_batch(questions)
     print(ans)
 

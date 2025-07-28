@@ -2,8 +2,42 @@ import asyncio
 import threading
 import uvicorn
 import streamlit as st
+import logging
+import json
+import time
+from datetime import datetime
 from llm_utils.langchain_pipeline import Database
 from llm_utils.langchain_controller import LangchainController, BatchQuestionRequest, MultiBatchRequest
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler('streamlit_app.log'),
+        logging.StreamHandler()
+    ]
+)
+
+# Create logger for this module
+logger = logging.getLogger('StreamlitApp')
+
+# Add a custom formatter for better readability
+class CustomFormatter(logging.Formatter):
+    def __init__(self):
+        super().__init__()
+        
+    def format(self, record):
+        if hasattr(record, 'user_data'):
+            # Format user data nicely
+            user_data = json.dumps(record.user_data, indent=2)
+            return f"{record.asctime} - {record.levelname} - {record.getMessage()}\nData: {user_data}"
+        return f"{record.asctime} - {record.levelname} - {record.getMessage()}"
+
+# Set up file handler with custom formatter
+file_handler = logging.FileHandler('streamlit_debug.log')
+file_handler.setFormatter(CustomFormatter())
+logger.addHandler(file_handler)
 
 LOGO_URL = "https://cdn.brandfetch.io/idEaoqZ5uv/w/400/h/400/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B"
 LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_512.gif"
@@ -12,6 +46,44 @@ LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_5
 DATABASE_OPTIONS = [
     db.value[0] for db in Database
 ]
+
+def log_api_call(operation_type, input_data, result_data=None, error=None, duration=None):
+    """Helper function to log API calls with structured data"""
+    log_data = {
+        "timestamp": datetime.now().isoformat(),
+        "operation": operation_type,
+        "input": input_data,
+        "duration_seconds": duration,
+        "success": error is None
+    }
+    
+    if result_data:
+        log_data["result_summary"] = {
+            "has_answer": bool(result_data.get("answer")),
+            "context_count": len(result_data.get("answer", {}).get("context", [])) if result_data.get("answer") else 0,
+            "total_duration": result_data.get("total_duration")
+        }
+    
+    if error:
+        log_data["error"] = str(error)
+    
+    logger.info(f"API Call - {operation_type}", extra={"user_data": log_data})
+    
+    # Also log to Streamlit sidebar for real-time debugging
+    with st.sidebar:
+        if error:
+            st.error(f"❌ {operation_type} failed: {error}")
+        else:
+            st.success(f"✅ {operation_type} completed in {duration:.2f}s" if duration else f"✅ {operation_type} completed")
+
+def log_user_interaction(interaction_type, details):
+    """Log user interactions"""
+    log_data = {
+        "timestamp": datetime.now().isoformat(),
+        "interaction_type": interaction_type,
+        "details": details
+    }
+    logger.info(f"User Interaction - {interaction_type}", extra={"user_data": log_data})
 
 # --- Custom styles ---
 st.markdown(f"""
@@ -226,20 +298,22 @@ button[data-baseweb="tab"][aria-selected="true"] {{
 </style>
 """, unsafe_allow_html=True)
 
+# Initialize controller
+logger.info("Initializing LangchainController")
 controller = LangchainController()
 
-def run_api():
-    try:
-        uvicorn.run(controller.app, host="0.0.0.0", port=8001, log_level="info")
-    except OSError as e:
-        if "address already in use" in str(e):
-            print("Port 8001 is in use, trying port 8002...")
-            uvicorn.run(controller.app, host="0.0.0.0", port=8002, log_level="info")
-        else:
-            raise e
+# Sidebar for debug controls
+st.sidebar.title("Debug Controls")
+show_debug = st.sidebar.checkbox("Show Debug Info", value=True)
+log_level = st.sidebar.selectbox("Log Level", ["INFO", "DEBUG", "WARNING", "ERROR"], index=0)
 
-api_thread = threading.Thread(target=run_api, daemon=True)
-api_thread.start()
+# Set log level
+logging.getLogger().setLevel(getattr(logging, log_level))
+
+if show_debug:
+    st.sidebar.write("📝 **Log Files:**")
+    st.sidebar.write("- `streamlit_app.log` (general)")
+    st.sidebar.write("- `streamlit_debug.log` (detailed)")
 
 st.title("RAGuardian")
 
@@ -271,15 +345,20 @@ with tab1:
                 final_db = custom_db if custom_db else "guardian"
             else:
                 final_db = selected_db
-                # Show info about selected database)
     
     with col2:
         run_button = st.button("Run", key="run_single_query")
 
     if run_button:
         if user_input:
+            # Log user interaction
+            log_user_interaction("single_query_button_click", {
+                "query": user_input,
+                "database": final_db,
+                "query_length": len(user_input)
+            })
+            
             placeholder = st.empty()
-
             placeholder.markdown(f'''
                 <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
                     <img src="{LOADING_URL}" width="300" style="border-radius: 12px;"/>
@@ -287,39 +366,74 @@ with tab1:
                 </div>
             ''', unsafe_allow_html=True)
 
-            # Pass final_db as the database parameter
-            result = controller.answer_question(user_input, database=final_db)
+            # Prepare input data for logging
+            input_data = {
+                "query": user_input,
+                "database": final_db,
+                "method": "answer_question"
+            }
+            
+            start_time = time.time()
+            try:
+                logger.info(f"Starting single query API call", extra={"user_data": input_data})
+                
+                # Pass final_db as the database parameter
+                result = controller.answer_question(user_input, database=final_db)
+                
+                duration = time.time() - start_time
+                
+                # Log successful API call
+                log_api_call("Single Query", input_data, result, duration=duration)
+                
+                if show_debug:
+                    st.sidebar.json({
+                        "Input": input_data,
+                        "Duration": f"{duration:.2f}s",
+                        "Success": True
+                    })
 
-            response = result
-            time_taken = response.get('total_duration')
-            answer = response.get("answer").get("answer", "")
-            context = response.get("answer").get("context", [])
+                response = result
+                time_taken = response.get('total_duration')
+                answer = response.get("answer").get("answer", "")
+                context = response.get("answer").get("context", [])
 
-            placeholder.markdown(f'''
-                <div class="chat-container answer-fadein" style="opacity:0;">
-                    <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-                    <div class="result-bubble">
-                        {answer}
+                placeholder.markdown(f'''
+                    <div class="chat-container answer-fadein" style="opacity:0;">
+                        <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
+                        <div class="result-bubble">
+                            {answer}
+                        </div>
                     </div>
-                </div>
-                <div class="label answer-fadein">Database: {final_db}</div>
-                <div class="label answer-fadein">Articles Used: {len(context)}</div>
-                <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
-            ''', unsafe_allow_html=True)
+                    <div class="label answer-fadein">Database: {final_db}</div>
+                    <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                    <div class="label answer-fadein">Time Taken: {time_taken:.2f} seconds</div>
+                ''', unsafe_allow_html=True)
 
-            context_html = """
-            <div class="context-box">
-                <div class="label">Context</div>
-                <br />
-            """
-            for article in context:
-                title = article.get("title", "Untitled")
-                url = article.get("url", "#")
-                context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+                context_html = """
+                <div class="context-box">
+                    <div class="label">Context</div>
+                    <br />
+                """
+                for article in context:
+                    title = article.get("title", "Untitled")
+                    url = article.get("url", "#")
+                    context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
 
-            context_html += "</div>"
-            st.markdown(context_html, unsafe_allow_html=True)
+                context_html += "</div>"
+                st.markdown(context_html, unsafe_allow_html=True)
+                
+            except Exception as e:
+                duration = time.time() - start_time
+                logger.error(f"Single query API call failed", extra={"user_data": {"error": str(e), "input": input_data}})
+                log_api_call("Single Query", input_data, error=e, duration=duration)
+                
+                placeholder.markdown(f'''
+                    <div class="error-message">
+                        <strong>Error:</strong> {str(e)}
+                    </div>
+                ''', unsafe_allow_html=True)
         else:
+            log_user_interaction("single_query_empty_input", {"attempted_database": final_db})
             st.warning("Enter something before running.")
 
 with tab2:
@@ -358,6 +472,15 @@ with tab2:
 
     if run_batch_button:
         if query:
+            # Log user interaction
+            log_user_interaction("batch_query_button_click", {
+                "query": query,
+                "batch_size": batch_size,
+                "max_workers": max_workers,
+                "run_id": run_id,
+                "database": final_batch_db
+            })
+            
             placeholder = st.empty()
             placeholder.markdown(f'''
                 <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
@@ -371,48 +494,76 @@ with tab2:
                 batch_size=batch_size,
                 max_workers=max_workers,
                 run_id=run_id,
-                database=final_batch_db  # Pass the selected database
+                database=final_batch_db
             )
+            
+            # Log the request object
+            request_dict = request.dict()
+            logger.info(f"Created BatchQuestionRequest", extra={"user_data": request_dict})
 
-            # Pass database parameter if your controller supports it
-            result = asyncio.run(controller.answer_question_batch(request))
+            start_time = time.time()
+            try:
+                logger.info(f"Starting batch query API call", extra={"user_data": request_dict})
+                
+                result = asyncio.run(controller.answer_question_batch(request))
+                
+                duration = time.time() - start_time
+                log_api_call("Batch Query", request_dict, result, duration=duration)
+                
+                if show_debug:
+                    st.sidebar.json({
+                        "Request": request_dict,
+                        "Duration": f"{duration:.2f}s",
+                        "Success": True
+                    })
  
-            placeholder.empty()
+                placeholder.empty()
 
-            # Add error handling
-            if result.get("status") == "error":
-                st.error(f"Error in batch processing: {result.get('error', 'Unknown error')}")
-                st.stop()
-
-            answers = result.get("answers", [])
-            total_duration = result.get("total_duration", 0)
-            placeholder.markdown(f'''
-                <div class="label answer-fadein">Database: {final_batch_db}</div>
-                <div class="label answer-fadein">Batch Size: {batch_size}</div>
-                <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
-            ''', unsafe_allow_html=True)
-
-            for i, answer in enumerate(answers):
-                context = answer.get("context", [])
-                answer_text = answer.get("answer", "")
+                answers = result.get("answers", [])
+                total_duration = result.get("total_duration", 0)
                 placeholder.markdown(f'''
-                    <div class="chat-container answer-fadein" style="opacity:0;">
-                        <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-                        <div class="result-bubble">
-                            <b>Sample Answer {i+1}</b><br>{answer_text}
-                        </div>
-                    </div>
-                    <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                    <div class="label answer-fadein">Database: {final_batch_db}</div>
+                    <div class="label answer-fadein">Batch Size: {batch_size}</div>
+                    <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
                 ''', unsafe_allow_html=True)
 
-                context_html = f'<div class="context-box"><div class="label">Context {i+1}</div><br>'
-                for article in context:
-                    title = article.get("title", "Untitled")
-                    url = article.get("url", "#")
-                    context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
-                context_html += '</div>'
-                st.markdown(context_html, unsafe_allow_html=True)
+                for i, answer in enumerate(answers):
+                    context = answer[1].get("context", [])
+                    answer_text = answer[1].get("answer", "")
+                    placeholder.markdown(f'''
+                        <div class="chat-container answer-fadein" style="opacity:0;">
+                            <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
+                            <div class="result-bubble">
+                                <b>Sample Answer {i+1}</b><br>{answer_text}
+                            </div>
+                        </div>
+                        <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                    ''', unsafe_allow_html=True)
+
+                    context_html = f'<div class="context-box"><div class="label">Context {i+1}</div><br>'
+                    for article in context:
+                        title = article.get("title", "Untitled")
+                        url = article.get("url", "#")
+                        context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+                    context_html += '</div>'
+                    st.markdown(context_html, unsafe_allow_html=True)
+                    
+            except Exception as e:
+                duration = time.time() - start_time
+                logger.error(f"Batch query API call failed", extra={"user_data": {"error": str(e), "request": request_dict}})
+                log_api_call("Batch Query", request_dict, error=e, duration=duration)
+                
+                placeholder.markdown(f'''
+                    <div class="error-message">
+                        <strong>Error:</strong> {str(e)}
+                    </div>
+                ''', unsafe_allow_html=True)
         else:
+            log_user_interaction("batch_query_empty_input", {"attempted_config": {
+                "batch_size": batch_size,
+                "max_workers": max_workers,
+                "database": final_batch_db
+            }})
             st.warning("Enter something before running.")
 
 with tab3:
@@ -447,6 +598,15 @@ with tab3:
     if run_multi_button:
         queries = [line.strip() for line in query_input.strip().splitlines() if line.strip()]
         if queries:
+            # Log user interaction
+            log_user_interaction("multi_query_button_click", {
+                "queries": queries,
+                "query_count": len(queries),
+                "max_workers": max_workers_multi,
+                "run_id": run_id_multi,
+                "database": final_multi_db
+            })
+            
             placeholder = st.empty()
             placeholder.markdown(f'''
                 <div id="loading" style="display:flex; flex-direction: column; justify-content:center; align-items: center; margin: 20px 0;">
@@ -459,50 +619,86 @@ with tab3:
                 queries=queries,
                 max_workers=max_workers_multi,
                 run_id=run_id_multi,
-                database=final_multi_db  # Pass the selected database
+                database=final_multi_db
             )
+            
+            # Log the request object
+            request_dict = request.dict()
+            logger.info(f"Created MultiBatchRequest", extra={"user_data": request_dict})
 
-            # Pass database parameter if your controller supports it
-            result = asyncio.run(controller.answer_questions_multi_batch(request))
+            start_time = time.time()
+            try:
+                logger.info(f"Starting multi-batch query API call", extra={"user_data": request_dict})
+                
+                result = asyncio.run(controller.answer_questions_multi_batch(request))
+                
+                duration = time.time() - start_time
+                log_api_call("Multi-Batch Query", request_dict, result, duration=duration)
+                
+                if show_debug:
+                    st.sidebar.json({
+                        "Request": request_dict,
+                        "Duration": f"{duration:.2f}s",
+                        "Success": True
+                    })
 
-            placeholder.empty()
+                placeholder.empty()
 
-            # Add error handling
-            if result.get("status") == "error":
-                st.error(f"Error in multi-batch processing: {result.get('error', 'Unknown error')}")
-                st.stop()
-
-            answers = result.get("results", [])
-            total_duration = result.get("total_duration", 0)
-
-            st.markdown(f'''
-                <div class="label answer-fadein">Database: {final_multi_db}</div>
-                <div class="label answer-fadein">Queries: {len(queries)}</div>
-                <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
-            ''', unsafe_allow_html=True)
-
-            for i, item in enumerate(answers):
-                query_text = item.get("query", "")
-                answer_data = item.get("answer", {})
-                answer_text = answer_data.get("answer", "")
-                context = answer_data.get("context", [])
+                answers = result.get("results", [])
+                total_duration = result.get("total_duration", 0)
 
                 st.markdown(f'''
-                    <div class="chat-container answer-fadein" style="opacity:0;">
-                        <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
-                        <div class="result-bubble">
-                            <b>Q{i+1}: {query_text}</b><br>{answer_text}
-                        </div>
-                    </div>
-                    <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                    <div class="label answer-fadein">Database: {final_multi_db}</div>
+                    <div class="label answer-fadein">Queries: {len(queries)}</div>
+                    <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
                 ''', unsafe_allow_html=True)
 
-                context_html = f'<div class="context-box"><div class="label">Context {i + 1}</div><br>'
-                for article in context:
-                    title = article.get("title", "Untitled")
-                    url = article.get("url", "#")
-                    context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
-                context_html += '</div>'
-                st.markdown(context_html, unsafe_allow_html=True)
+                for i, item in enumerate(answers):
+                    query_text = item.get("query", "")
+                    answer_data = item.get("answer", {})
+                    answer_text = answer_data.get("answer", "")
+                    context = answer_data.get("context", [])
+
+                    st.markdown(f'''
+                        <div class="chat-container answer-fadein" style="opacity:0;">
+                            <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
+                            <div class="result-bubble">
+                                <b>Q{i+1}: {query_text}</b><br>{answer_text}
+                            </div>
+                        </div>
+                        <div class="label answer-fadein">Articles Used: {len(context)}</div>
+                    ''', unsafe_allow_html=True)
+
+                    context_html = f'<div class="context-box"><div class="label">Context {i + 1}</div><br>'
+                    for article in context:
+                        title = article.get("title", "Untitled")
+                        url = article.get("url", "#")
+                        context_html += f'<a class="context-link" href="{url}" target="_blank">{title}</a>'
+                    context_html += '</div>'
+                    st.markdown(context_html, unsafe_allow_html=True)
+                    
+            except Exception as e:
+                duration = time.time() - start_time
+                logger.error(f"Multi-batch query API call failed", extra={"user_data": {"error": str(e), "request": request_dict}})
+                log_api_call("Multi-Batch Query", request_dict, error=e, duration=duration)
+                
+                placeholder.markdown(f'''
+                    <div class="error-message">
+                        <strong>Error:</strong> {str(e)}
+                    </div>
+                ''', unsafe_allow_html=True)
         else:
+            log_user_interaction("multi_query_empty_input", {"attempted_config": {
+                "max_workers": max_workers_multi,
+                "run_id": run_id_multi,
+                "database": final_multi_db
+            }})
             st.warning("Please enter at least one valid query.")
+
+# Log session info at startup
+if 'session_logged' not in st.session_state:
+    logger.info("New Streamlit session started", extra={"user_data": {
+        "database_options": DATABASE_OPTIONS,
+        "timestamp": datetime.now().isoformat()
+    }})
+    st.session_state.session_logged = True

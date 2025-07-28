@@ -53,7 +53,7 @@ def retrieve(state: State) -> Dict[str, Any]:
 
 # 3. Step 2: generate answer with Claude
 def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
-    # build context string
+    # # build context string
     ctx = "\n\n".join(
         f"Title: {doc.metadata['title']}\n"
         f"Date: {doc.metadata['publication_date']}\n"
@@ -61,9 +61,9 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
         for doc in state["context"]
     )
     prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
-    response = app.llm.invoke(prompt_str)
-    return {"answer": response.content}
-    #return {"answer": "This is a placeholder answer. Replace with actual generation logic."}
+    # response = app.llm.invoke(prompt_str)
+    # return {"answer": response.content}
+    return {"answer": "This is a placeholder answer. Replace with actual generation logic."}
 
 def post(data, endpoint_url=None):
     """Post results to the specified endpoint"""
@@ -122,7 +122,6 @@ class RAGApplication:
         ])
         builder.add_edge(START, "post")
         self.graph = builder.compile(name=name)
-
 
     def answer_question(self, question: str, database: str) -> Dict[str, Any]:
         """Invoke the orchestrated RAG graph in one call."""
