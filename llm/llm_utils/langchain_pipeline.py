@@ -34,7 +34,7 @@ class State(TypedDict):
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
-    docs = requests.get(f"http://localhost:{state.get("port", 8000)}/related-articles?query={state['question']}").json()
+    docs = requests.get(f"http://localhost:{state.get('port', 8000)}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
