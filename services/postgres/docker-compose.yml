@@ -35,22 +35,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
     volumes:
-      - ../../scripts/:/app/scripts
-      - ./requirements.txt:/app/requirements.txt
-      - ../../services/postgres:/app/services/postgres
-      - ../../.env:/app/.env
+      - .:/app
 
     working_dir: /app
-    command:
-      [
-        "uvicorn",
-        "services.postgres.postgres_controller:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000",
-        "--reload",
-      ]
     restart: unless-stopped
 
 volumes:
