@@ -55,6 +55,7 @@ def retrieve(state: State) -> Dict[str, Any]:
 # 3. Step 2: generate answer with Claude
 def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     # # build context string
+    """IF YOU WANT TO USE THE LLM, SET USE_LLM TO TRUE IN THE .ENV FILE"""
     ctx = "\n\n".join(
         f"Title: {doc.metadata['title']}\n"
         f"Date: {doc.metadata['publication_date']}\n"
@@ -70,6 +71,7 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
 
 def post(state: State, endpoint_url=None):
     """Post results to the specified endpoint"""
+    """IF YOU WANT TO USE THE POST STEP, SET USE_POST TO TRUE IN THE .ENV FILE"""
     if (os.getenv("USE_POST", "false") == "true"):
         if not endpoint_url:
             hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
