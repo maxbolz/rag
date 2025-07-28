@@ -12,12 +12,13 @@ services:
       - POSTGRES_DB=${POSTGRES_DB:-VectorEmbeds}
       - POSTGRES_USER=${POSTGRES_USER:-test}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-1234}
-    ulimits:                                          
+    ulimits:
       nofile:
         soft: 262144
         hard: 262144
 
   app:
+    env_file: "../../.env"
     build:
       context: ../..
       dockerfile: services/postgres/Dockerfile
@@ -25,7 +26,7 @@ services:
     depends_on:
       - db
     ports:
-      - 8001:8000
+      - 8001:8001
     environment:
       - DATABASE_TYPE=postgres
       - POSTGRES_HOST=db
@@ -40,7 +41,16 @@ services:
       - ../../.env:/app/.env
 
     working_dir: /app
-    command: ["uvicorn", "services.postgres.postgres_controller:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command:
+      [
+        "uvicorn",
+        "services.postgres.postgres_controller:app",
+        "--host",
+        "0.0.0.0",
+        "--port",
+        "8000",
+        "--reload",
+      ]
     restart: unless-stopped
 
 volumes:
