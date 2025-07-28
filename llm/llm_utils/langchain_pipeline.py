@@ -8,8 +8,8 @@ from langchain.schema import Document
 from langchain.prompts import PromptTemplate
 from pydantic import SecretStr
 import requests
-from langchain_metrics import LangchainMetrics
-
+from llm.langchain_metrics import LangchainMetrics
+from langchain_core.callbacks.base import BaseCallbackHandler
 
 # === LangGraph imports ===
 from langgraph.graph import StateGraph, START
@@ -24,14 +24,78 @@ class State(TypedDict):
     context: List[Document]
     answer: str
 
+class RunIdCollector(BaseCallbackHandler):
+    def __init__(self):
+        self.run_ids = []
+        self.last_run_id = None  # Add this line
+        self.chain_run_ids = []
+
+    def on_llm_start(self, serialized, prompts, *, run_id, parent_run_id=None, **kwargs):
+        self.run_ids.append(run_id)
+        print(f"LLM run started with run_id: {run_id}")
+        # Store run_id for later processing in on_llm_end
+        self.current_run_id = run_id
+
+    def on_llm_end(self, response, *, run_id, parent_run_id=None, **kwargs):
+        print(f"LLM run ended with run_id: {run_id}")
+        # Process the run after it's completed
+        import time
+        time.sleep(1)  # Give LangSmith time to save the run
+        langchain_metrics = LangchainMetrics()
+        langchain_metrics.connect_clickhouse()  # Connect to ClickHouse
+        # run = langchain_metrics.get_runs_by_id_safe([run_id])
+        # if run:
+        #     # Process the run here
+        #     langchain_metrics.save_to_clickhouse(run)
+        # else:
+        #     print(f"No run found for run_id: {run_id}")
+        
+        run_name = "retrieve"
+        runs = langchain_metrics.get_runs(num_runs=1, run_ids=None, run_name=run_name)
+        print(f"Runs: {runs}")
+        
+        if runs and len(runs) > 0:
+            # Get the first run from the list
+            run = runs[0]
+            print(f"Found run with name: {run.name}")
+            #save run to clickhouse
+            langchain_metrics.save_to_clickhouse(run)
+        else:
+            print(f"No run found for run_name: {run_name}")
+        
+
+    # def on_chain_start(self, inputs, *, run_id, parent_run_id=None, **kwargs):
+    #     print(f"Chain run started with run_id: {run_id}")
+    #     self.chain_run_ids.append(run_id)
+    
+    # def on_chain_end(self, outputs, *, run_id, parent_run_id=None, **kwargs):
+    #     print(f"Chain run ended with run_id: {run_id}")
+    #     # Process the run here
+    #     langchain_metrics = LangchainMetrics()
+    #     langchain_metrics.connect_clickhouse()  # Connect to ClickHouse
+    #     run = langchain_metrics.get_runs_by_id_safe([run_id])
+    #     if run:
+    #         print(f"Found run: {run.trace_id}")
+        
+        
+        
+
+        
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
     # Choose port based on database type
-    if os.getenv("DATABASE_TYPE", "").lower() == "clickhouse":
+    database_type = os.getenv("DATABASE_TYPE", "")
+    print(f"DEBUG: DATABASE_TYPE is '{database_type}'")
+    
+    if database_type.lower() == "clickhouse":
         port = 8000  # Port from clickhouse docker-compose
-    elif os.getenv("DATABASE_TYPE", "").lower() == "postgres":
+        print(f"DEBUG: Using ClickHouse port {port}")
+    elif database_type.lower() == "postgres":
         port = 8001  # Port from postgres docker-compose
+        print(f"DEBUG: Using PostgreSQL port {port}")
+    else:
+        raise ValueError(f"DATABASE_TYPE must be either clickhouse or postgres, got '{database_type}'")
 
     docs = requests.get(f"http://localhost:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
@@ -63,20 +127,6 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     response = app.llm.invoke(prompt_str)
 
     return {"answer": response.content}
-=======
-
-    # ctx = "\n\n".join(
-    #     f"Title: {doc.metadata['title']}\n"
-    #     f"Date: {doc.metadata['publication_date']}\n"
-    #     f"Content: {doc.page_content}"
-    #     for doc in state["context"]
-    # )
-    # prompt_str = app.rag_prompt.format(question=state["question"], context=ctx)
-    # response = app.llm.invoke(prompt_str)
-    # return {"answer": response.content}
-
-    return {"answer": "lorem ipsum dolor sit amet \n\n ******* this is a sample response so that we dont call the LLM and waste money. If you want to see the real response, uncomment the code in def generate in langchain_pipeline.py"}
->>>>>>> 3817806ba64e4d258b41ebde6e06725516fabfcb:llm/llm_utils/langchain_pipeline.py
 
 
 class RAGApplication:
@@ -87,13 +137,16 @@ class RAGApplication:
         api_key = os.getenv("ANTHROPIC_API_KEY")
         if not api_key:
             raise ValueError("ANTHROPIC_API_KEY is required")
+        
+        collector = RunIdCollector()
 
         self.llm = ChatAnthropic(
             model_name="claude-3-5-sonnet-latest",
             api_key=SecretStr(api_key),
             temperature=0.1,
             timeout=60,
-            stop=[]
+            stop=[],
+            callbacks=[collector]
         )
         self.rag_prompt = PromptTemplate(
             input_variables=["question", "context"],
@@ -108,9 +161,7 @@ class RAGApplication:
             Please provide a comprehensive answer based on the context above. If the context doesn't contain enough information to answer the question, say so. Use the Guardian articles as your primary source of information.
 
             Answer:"""
-        )
-
-        # 4. Build the LangGraph orchestration
+        )        # 4. Build the LangGraph orchestration
         builder = StateGraph(State).add_sequence([
             retrieve,
             lambda state: generate(state, self)
@@ -142,6 +193,8 @@ class RAGApplication:
                     for d in docs
                 ]
             }
+            
+
         except Exception as e:
             logging.error(f"RAG pipeline failed: {e}")
             return {
@@ -156,15 +209,6 @@ class RAGApplication:
 if __name__ == "__main__":
     state_app = RAGApplication(max_articles=5)
     for q in [
-        "Give me the latest on news corp columnist Lucy Zelić.",
+        "Give me the latest on Trump.",
     ]:
         res = state_app.answer_question(q)
-        print(f"\nQuestion: {res['question']}")
-        print(f"Answer: {res['answer']}")
-        print(f"Articles used: {res['articles_used']}")
-        print("-" * 60)
-    langchain_metrics = LangchainMetrics()
-    langchain_metrics.connect_clickhouse()
-    runs = langchain_metrics.get_runs()
-    for run in runs:
-        langchain_metrics.save_to_clickhouse(run=run)
