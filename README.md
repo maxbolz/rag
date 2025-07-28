@@ -19,29 +19,35 @@ This repository can be used to measure the metrics of various vector databases.
 2. Create a `.env` file at the project root in the same directory as the `.git` folder with the following fields:
 
 ```
-# PSQL CREDENTIALS
+# PostgreSQL
 POSTGRES_DB="guardian"
 POSTGRES_USER="postgres"
 POSTGRES_PASSWORD="<your-password>"
 POSTGRES_HOST="localhost"
 POSTGRES_PORT=5432
 
+# Clickhouse 
+CLICKHOUSE_DB=guardian
+CLICKHOUSE_USER=default
+CLICKHOUSE_PASSWORD="<your-password>"
+
 GUARDIAN_API_KEY="<your-key>"
 
-HOST="localhost" or shared IP address holding the container 
+ANTHROPIC_API_KEY="<your-key>"
+LANGSMITH_TRACING="true"
+LANGSMITH_API_KEY="<your-key>"
+
+DATABASE_TYPE="<name of database>"
+HOST="localhost" or shared IPv4 address 
 ```
 
 3. Install PostgreSQL; ensure you **write down your login somewhere safe**.
 
-4. Create a PostgreSQL database on `localhost:5432` named `guardian` by running `psql -U postgres -h localhost -p 5432`.
+4. build Docker image for PostgreSQL using 'docker-compose build --no-cache"
 
-5. In pgAdmin, run `CREATE DATABASE guardian;`.
+5. Run Docker for PostgreSQL using `docker-compose up`
 
-6. Connect to the database with `\c guardian` in your Powershell.
-
-7. Run Docker for PostgreSQL using `docker-compose -f docker/docker-compose.yml up -d`
-
-8. Install the project requirements using `pip install requirements.txt`; if you do not have a virtual environment set up, do that first!
+6. When done, close Docker using `docker-compose down`
 
 # Running
 
