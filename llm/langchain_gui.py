@@ -229,7 +229,14 @@ button[data-baseweb="tab"][aria-selected="true"] {{
 controller = LangchainController()
 
 def run_api():
-    uvicorn.run(controller.app, host="0.0.0.0", port=8001, log_level="info")
+    try:
+        uvicorn.run(controller.app, host="0.0.0.0", port=8001, log_level="info")
+    except OSError as e:
+        if "address already in use" in str(e):
+            print("Port 8001 is in use, trying port 8002...")
+            uvicorn.run(controller.app, host="0.0.0.0", port=8002, log_level="info")
+        else:
+            raise e
 
 api_thread = threading.Thread(target=run_api, daemon=True)
 api_thread.start()
@@ -241,7 +248,7 @@ tab1, tab2, tab3 = st.tabs(["Single Query", "Bulk Query", "Multi Query"])
 with tab1:
     col1, col2 = st.columns([7, 1])
     with col1:
-        user_input = st.text_input(" ", placeholder="Enter your question", key="user_input", label_visibility="collapsed")
+        user_input = st.text_input("Question", placeholder="Enter your question", key="user_input", label_visibility="collapsed")
         
         # Database selection with dropdown
         col_db1, col_db2 = st.columns([2, 3])
@@ -333,7 +340,7 @@ with tab2:
 
     query_col, button_col = st.columns([7, 1])
     with query_col:
-        query = st.text_input(" ", placeholder="Enter your batch query", key="batch_query", label_visibility="collapsed")
+        query = st.text_input("Batch Query", placeholder="Enter your batch query", key="batch_query", label_visibility="collapsed")
         
         # Handle custom database for batch
         if batch_db == "custom":
@@ -372,6 +379,11 @@ with tab2:
  
             placeholder.empty()
 
+            # Add error handling
+            if result.get("status") == "error":
+                st.error(f"Error in batch processing: {result.get('error', 'Unknown error')}")
+                st.stop()
+
             answers = result.get("answers", [])
             total_duration = result.get("total_duration", 0)
             placeholder.markdown(f'''
@@ -381,8 +393,8 @@ with tab2:
             ''', unsafe_allow_html=True)
 
             for i, answer in enumerate(answers):
-                context = answer[1].get("context", [])
-                answer_text = answer[1].get("answer", "")
+                context = answer.get("context", [])
+                answer_text = answer.get("answer", "")
                 placeholder.markdown(f'''
                     <div class="chat-container answer-fadein" style="opacity:0;">
                         <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
@@ -417,7 +429,7 @@ with tab3:
             key="multi_db_select"
         )
 
-    query_input = st.text_area("", key="multi_query", height=200, placeholder="Enter one query per line", label_visibility="collapsed")
+    query_input = st.text_area("Multi Queries", key="multi_query", height=200, placeholder="Enter one query per line", label_visibility="collapsed")
     
     # Handle custom database for multi query
     if multi_db == "custom":
@@ -454,6 +466,11 @@ with tab3:
             result = asyncio.run(controller.answer_questions_multi_batch(request))
 
             placeholder.empty()
+
+            # Add error handling
+            if result.get("status") == "error":
+                st.error(f"Error in multi-batch processing: {result.get('error', 'Unknown error')}")
+                st.stop()
 
             answers = result.get("results", [])
             total_duration = result.get("total_duration", 0)

@@ -59,10 +59,10 @@ class LangchainController:
 
     async def answer_question_batch(self, request: BatchQuestionRequest):
         try:
-            async_pipeline = AsyncPipeline(request.max_workers, request.run_id)
+            async_pipeline = AsyncPipeline(max_concurrency=request.max_workers, run_name=request.run_id, database=request.database)
             start_time = time.time()
             queries = [request.query] * request.batch_size
-            answers = await async_pipeline.run_batch(queries, request.database)
+            answers = await async_pipeline.run_batch(queries)
             end_time = time.time()
             total_duration = end_time - start_time
 
@@ -94,9 +94,9 @@ class LangchainController:
 
     async def answer_questions_multi_batch(self, request: MultiBatchRequest):
         try:
-            async_pipeline = AsyncPipeline(request.max_workers, request.run_id)
+            async_pipeline = AsyncPipeline(max_concurrency=request.max_workers, run_name=request.run_id, database=request.database)
             start_time = time.time()
-            answers = await async_pipeline.run_batch(request.queries, request.database)
+            answers = await async_pipeline.run_batch(request.queries)
             end_time = time.time()
             total_duration = end_time - start_time
 
