@@ -55,7 +55,7 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
                 "api-key": API_KEY,
                 "order-by": "newest",
                 "page-size": page_size,
-                "page": page,  # Offset to fetch older articles (skip recent 2000 pages)
+                "page": page,
                 "show-fields": "all",
             }
 
