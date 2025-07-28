@@ -356,8 +356,8 @@ with tab1:
             try:
                 
                 # Pass final_db as the database parameter
-                result = controller.answer_question(user_input, database=final_db)
-                
+                result = asyncio.run(controller.answer_question_batch(BatchQuestionRequest(query=user_input, database=final_db, batch_size=1, max_workers=1, run_id="test-run-1")))
+
                 duration = time.time() - start_time
                 
                 # Log successful API call
@@ -372,8 +372,8 @@ with tab1:
 
                 response = result
                 time_taken = response.get('total_duration')
-                answer = response.get("answer").get("answer", "")
-                context = response.get("answer").get("context", [])
+                answer = response.get("answers")[0].get("answer", "")
+                context = response.get("answers")[0].get("context", [])
 
                 placeholder.markdown(f'''
                     <div class="chat-container answer-fadein" style="opacity:0;">
@@ -496,7 +496,7 @@ with tab2:
 
                 answers = result.get("answers", [])
                 total_duration = result.get("total_duration", 0)
-                placeholder.markdown(f'''
+                st.markdown(f'''
                     <div class="label answer-fadein">Database: {final_batch_db}</div>
                     <div class="label answer-fadein">Batch Size: {batch_size}</div>
                     <div class="label answer-fadein">Time Taken: {total_duration:.2f} seconds</div>
@@ -505,7 +505,7 @@ with tab2:
                 for i, answer in enumerate(answers):
                     context = answer.get("context", [])
                     answer_text = answer.get("answer", "")
-                    placeholder.markdown(f'''
+                    st.markdown(f'''
                         <div class="chat-container answer-fadein" style="opacity:0;">
                             <img src="{LOGO_URL}" class="guardian-logo" alt="Guardian Logo">
                             <div class="result-bubble">
