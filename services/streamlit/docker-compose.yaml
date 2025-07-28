@@ -13,6 +13,7 @@ services:
       - ./requirements.txt:/app/requirements.txt
       - ../../.streamlit:/app/.streamlit
     restart: unless-stopped
+<<<<<<< HEAD
   
   ui:
     build:
@@ -29,3 +30,15 @@ services:
       - ../../llm:/app/
       - ./requirements.txt:/app/requirements.txt
     restart: unless-stopped
+=======
+  grafana:
+    image: grafana/grafana-oss
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    restart: unless-stopped
+>>>>>>> 1cacb28 (merge composes)
