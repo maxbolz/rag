@@ -45,6 +45,19 @@ def pull_docs(total_needed: int = 1000, page_size: int = 1):
         );
     """)
 
+    rows = session.execute(f"""
+        SELECT index_name FROM system_schema.indexes
+        WHERE keyspace_name = '{keyspace}' AND table_name = 'articles';
+    """)
+
+    existing_indexes = [row.index_name for row in rows]
+
+    if 'ann_index' not in existing_indexes:
+        session.execute("""
+            CREATE CUSTOM INDEX IF NOT EXISTS ann_index ON articles(vector)
+            USING 'StorageAttachedIndex';
+        """)
+
     model = SentenceTransformer("all-MiniLM-L6-v2")
     articles_inserted = 0
     articles_skipped = 0

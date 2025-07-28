@@ -30,9 +30,7 @@ services:
       - CASSANDRA_PORT=9042
       - CASSANDRA_KEYSPACE=vectorembeds
     volumes:
-      - ../../scripts/:/app/scripts
-      - ../../requirements.txt:/app/requirements.txt
-      - ../../services/cassandra:/app/services/cassandra
+      - ../..:/app
       - ../../.env:/app/.env
 
     working_dir: /app

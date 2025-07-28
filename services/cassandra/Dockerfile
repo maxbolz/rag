@@ -21,7 +21,7 @@ RUN apt-get update && \
 RUN ls -la
 
 # Install dependencies
-COPY requirements.txt .
+COPY services/cassandra/requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
