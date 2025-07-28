@@ -271,12 +271,12 @@ button[data-baseweb="tab"][aria-selected="true"] {{
 controller = LangchainController()
 
 
-def run_api():
-    uvicorn.run(controller.app, host="0.0.0.0", port=8002, log_level="info")
+# def run_api():
+#     uvicorn.run(controller.app, host="0.0.0.0", port=8002, log_level="info")
 
 
-api_thread = threading.Thread(target=run_api, daemon=True)
-api_thread.start()
+# api_thread = threading.Thread(target=run_api, daemon=True)
+# api_thread.start()
 
 
 # Sidebar for debug controls

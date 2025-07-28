@@ -16,8 +16,7 @@ from typing_extensions import TypedDict
 
 load_dotenv()
 
-
-POST_ENDPOINT_URL = "http://0.0.0.0:8000/upload-articles"
+POST_ENDPOINT_URL = "http://{hostname}:{port}/upload-articles"
 
 # 1. Define the shared state for orchestration
 class Database(Enum):
@@ -34,7 +33,8 @@ class State(TypedDict):
 
 # 2. Step 1: retrieve relevant articles
 def retrieve(state: State) -> Dict[str, Any]:
-    docs = requests.get(f"http://localhost:{state.get('port', 8000)}/related-articles?query={state['question']}").json()
+    hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+    docs = requests.get(f"http://{hostname}:{state.get('port')}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
         Document(
@@ -65,15 +65,16 @@ def generate(state: State, app: "RAGApplication") -> Dict[str, Any]:
     # return {"answer": response.content}
     return {"answer": "This is a placeholder answer. Replace with actual generation logic."}
 
-def post(data, endpoint_url=None):
+def post(state: State, endpoint_url=None):
     """Post results to the specified endpoint"""
     if not endpoint_url:
-        endpoint_url = POST_ENDPOINT_URL
+        hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+        endpoint_url = POST_ENDPOINT_URL.format(port=state.get('port', 8000), hostname=hostname)
     
     try:
         response = requests.post(
             endpoint_url,
-            json=data,
+            json={},
             timeout=30,
             headers={'Content-Type': 'application/json'}
         )

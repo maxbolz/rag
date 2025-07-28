@@ -12,6 +12,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Expose Streamlit default port
 EXPOSE 8501
-
-# Start the Streamlit app
-CMD ["streamlit", "run", "llm/langchain_gui.py", "--server.port=8501", "--server.address=0.0.0.0"]
+EXPOSE 8002

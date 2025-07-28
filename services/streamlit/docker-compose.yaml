@@ -1,13 +1,30 @@
 services:
-  ui:
+  langchain:
     build:
       context: ../..  # or whatever root includes your langchain_ui.py
       dockerfile: services/streamlit/Dockerfile
-    container_name: rag-ui
+    container_name: rag-langchain
+    command: uvicorn llm_utils.langchain_controller:app --host 0.0.0.0 --port 8002
     ports:
-      - 8501:8501
+      - 8002:8002
     volumes:
       - ../../.env:/app/.env
-      - ../../llm:/app/llm
+      - ../../llm:/app/
+      - ./requirements.txt:/app/requirements.txt
+    restart: unless-stopped
+  
+  ui:
+    build:
+      context: ../..
+      dockerfile: services/streamlit/Dockerfile
+    container_name: rag-ui
+    command: streamlit run langchain_gui.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - 8501:8501
+    depends_on:
+      - langchain
+    volumes:
+      - ../../.env:/app/.env
+      - ../../llm:/app/
       - ./requirements.txt:/app/requirements.txt
     restart: unless-stopped
