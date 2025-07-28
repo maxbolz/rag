@@ -1,0 +1,9 @@
+# Cassandra dependencies
+cassandra-driver
+fastapi==0.116.1
+pydantic==2.11.7
+python-dotenv==1.1.1
+requests==2.32.4
+sentence_transformers==5.0.0
+services==0.1.1
+uvicorn==0.35.0

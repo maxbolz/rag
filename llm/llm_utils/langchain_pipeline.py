@@ -98,7 +98,11 @@ def retrieve(state: State) -> Dict[str, Any]:
     logging.info(f"Using port {port} for {AvailableRAGDatabases(os.getenv('DATABASE_TYPE', '').lower())}")
 
     # hostname is based on local machine or docker
+<<<<<<< HEAD
     hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", "true") == "true" else "host.docker.internal"
+=======
+    hostname = "localhost" if os.getenv("LOCAL_STREAMLIT_SERVER", False) else "host.docker.internal"
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
     docs = requests.get(f"http://{hostname}:{port}/related-articles?query={state['question']}").json()
     # convert to LangChain Documents
     documents = [
