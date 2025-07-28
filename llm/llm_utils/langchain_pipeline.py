@@ -22,6 +22,7 @@ POST_ENDPOINT_URL = "http://{hostname}:{port}/upload-articles"
 class Database(Enum):
     CLICKHOUSE = ("clickhouse", 8000)
     POSTGRES = ("postgres", 8001)
+    CASSANDRA = ("cassandra", 8003)
 
 
 class State(TypedDict):
