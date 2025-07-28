@@ -68,9 +68,9 @@ Run `uvicorn services.postgres_controller:app --reload`.
 
 Run `uvicorn services.clickhouse_controller:app --reload`.
 
-## Local Clickhouse
+## Local Cassandra
 
-Run `uvicorn services.cassandra.cassandra_controller:app --reload`
+Run `uvicorn services.cassandra.cassandra_controller:app --reload`.
 
 ## Local Grafana
 
