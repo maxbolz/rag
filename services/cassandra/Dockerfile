@@ -21,10 +21,42 @@ RUN apt-get update && \
 RUN ls -la
 
 # Install dependencies
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+COPY requirements.txt .
+=======
 COPY services/cassandra/requirements.txt .
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
+COPY services/cassandra/requirements.txt .
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
+COPY services/cassandra/requirements.txt .
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
+COPY services/cassandra/requirements.txt .
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
 # Default command if not overridden by docker-compose
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+CMD ["python", "-m", "uvicorn", "services.cassandra.cassandra_controller:app", "--host", "0.0.0.0", "--port", "8002"]
+=======
 CMD ["python", "-m", "uvicorn", "services.cassandra.cassandra_controller:app", "--host", "0.0.0.0", "--port", "8003"]
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
+CMD ["python", "-m", "uvicorn", "services.cassandra.cassandra_controller:app", "--host", "0.0.0.0", "--port", "8003"]
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
+CMD ["python", "-m", "uvicorn", "services.cassandra.cassandra_controller:app", "--host", "0.0.0.0", "--port", "8003"]
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819
+=======
+CMD ["python", "-m", "uvicorn", "services.cassandra.cassandra_controller:app", "--host", "0.0.0.0", "--port", "8003"]
+>>>>>>> 9634c8a0ef870fa079b7b6de8463d67f3425a819

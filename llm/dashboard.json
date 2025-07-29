@@ -18,13 +18,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 1,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "ClickHouse"
+        "uid": "aesy917veeltsd"
       },
       "fieldConfig": {
         "defaults": {
@@ -126,7 +126,7 @@
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
-        "uid": "ClickHouse"
+        "uid": "aesy917veeltsd"
       },
       "fieldConfig": {
         "defaults": {
@@ -206,7 +206,7 @@
         {
           "datasource": {
             "type": "grafana-clickhouse-datasource",
-            "uid": "ClickHouse"
+            "uid": "aesy917veeltsd"
           },
           "editorType": "sql",
           "format": 1,
@@ -222,7 +222,7 @@
           },
           "pluginVersion": "4.10.1",
           "queryType": "table",
-		  "rawSql": "SELECT parent_run_id, \r\n  CASE \r\n    WHEN duration > 36000 THEN duration - 36000 \r\n    ELSE duration \r\n  END AS adjusted_duration,\r\n  status, \r\n  outputs\r\nFROM \"guardian\".\"langchain_metrics\"\r\nWHERE parent_run_id != 'None'\r\nORDER BY start_time ASC\r\nLIMIT 1000"
+          "rawSql": "SELECT parent_run_id, duration, status, outputs\r\nFROM \"guardian\".\"langchain_metrics\"\r\nWHERE parent_run_id != 'None'\r\nORDER BY start_time ASC\r\nLIMIT 1000",
           "refId": "A"
         }
       ],
