@@ -4,7 +4,7 @@ services:
     container_name: clickhouse-server
     hostname: clickhouse
     ports:
-      - "8124:8123" # HTTP interface
+      - "8123:8123" # HTTP interface
       - "9001:9000" # Native TCP interface
     volumes:
       - ./user_directories/config.xml:/etc/clickhouse-server/user_directories/config.xml

@@ -15,6 +15,7 @@ LOADING_URL = "https://cdn.pixabay.com/animation/2025/04/08/09/08/09-08-31-655_5
 DURATION_METRICS_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753395832378&to=1753417432378&timezone=browser&panelId=1&__feature.dashboardSceneSolo=true"
 TOKEN_METRICS_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753645594350&to=1753667194350&timezone=browser&panelId=2&__feature.dashboardSceneSolo=true"
 MOST_RECENT_RUNS_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753613969712&to=1753700369712&timezone=browser&panelId=4&__feature.dashboardSceneSolo=true"
+CONTEXT_METRICS_URL = "http://localhost:3000/d-solo/90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c/db-metrics-visualization?orgId=1&from=1753645594350&to=1753667194350&timezone=browser&panelId=3&__feature.dashboardSceneSolo=true"
 # Database options - customize these based on your available databases
 DATABASE_OPTIONS = [
     db.value[0] for db in Database
@@ -683,4 +684,9 @@ with tab4:
     with tab4c:
         st.components.v1.html(
             f'<iframe src="{TOKEN_METRICS_URL}" width="1000" height="600" frameborder="0"></iframe>',
+            height=600)
+    
+    with tab4d:
+        st.components.v1.html(
+            f'<iframe src="{CONTEXT_METRICS_URL}" width="1000" height="600" frameborder="0"></iframe>',
             height=600)
