@@ -18,9 +18,111 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": null,
+  "id": 1,
   "links": [],
   "panels": [
+    {
+      "datasource": {
+        "type": "grafana-clickhouse-datasource",
+        "uid": "__datasource__"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "fillOpacity": 80,
+            "gradientMode": "hue",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 1,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
+      },
+      "id": 3,
+      "options": {
+        "barRadius": 0,
+        "barWidth": 0.97,
+        "colorByField": "avg_duration",
+        "fullHighlight": false,
+        "groupWidth": 0.7,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "orientation": "auto",
+        "showValue": "auto",
+        "stacking": "none",
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "xTickLabelRotation": 0,
+        "xTickLabelSpacing": 0
+      },
+      "pluginVersion": "12.1.0",
+      "targets": [
+        {
+          "editorType": "sql",
+          "format": 1,
+          "meta": {
+            "builderOptions": {
+              "columns": [],
+              "database": "",
+              "limit": 1000,
+              "mode": "list",
+              "queryType": "table",
+              "table": ""
+            }
+          },
+          "pluginVersion": "4.10.1",
+          "queryType": "table",
+          "rawSql": "SELECT \r\n  'clickhouse' AS tag_type,\r\n  avg(end_time - start_time) AS avg_duration\r\nFROM guardian.langchain_metrics\r\nWHERE has(JSONExtract(tags, 'Array(String)'), 'clickhouse')\r\n  AND (end_time - start_time) > 0 \r\n  AND (end_time - start_time) <= 36000\r\n\r\nUNION ALL\r\n\r\nSELECT \r\n  'cassandra' AS tag_type,\r\n  avg(end_time - start_time) AS avg_duration\r\nFROM guardian.langchain_metrics\r\nWHERE has(JSONExtract(tags, 'Array(String)'), 'cassandra')\r\n  AND (end_time - start_time) > 0 \r\n  AND (end_time - start_time) <= 36000\r\n\r\nUNION ALL\r\n\r\nSELECT \r\n  'postgres' AS tag_type,\r\n  avg(end_time - start_time) AS avg_duration\r\nFROM guardian.langchain_metrics\r\nWHERE has(JSONExtract(tags, 'Array(String)'), 'postgres')\r\n  AND (end_time - start_time) > 0 \r\n  AND (end_time - start_time) <= 36000\r\n\r\nORDER BY tag_type;",
+          "refId": "A"
+        }
+      ],
+      "title": "Metrics by Database",
+      "type": "barchart"
+    },
     {
       "datasource": {
         "type": "grafana-clickhouse-datasource",
@@ -73,7 +175,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 0
+        "y": 8
       },
       "id": 2,
       "options": {
@@ -175,7 +277,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 16
       },
       "id": 1,
       "options": {
@@ -222,7 +324,7 @@
           },
           "pluginVersion": "4.10.1",
           "queryType": "table",
-		  "rawSql": "SELECT parent_run_id, \r\n  CASE \r\n    WHEN duration > 36000 THEN duration - 36000 \r\n    ELSE duration \r\n  END AS adjusted_duration,\r\n  status, \r\n  outputs\r\nFROM \"guardian\".\"langchain_metrics\"\r\nWHERE parent_run_id != 'None'\r\nORDER BY start_time ASC\r\nLIMIT 1000"
+          "rawSql": "SELECT \r\n  parent_run_id, \r\n  CASE \r\n    WHEN duration > 36000 THEN duration - 36000 \r\n    ELSE duration \r\n  END AS adjusted_duration,\r\n  status, \r\n  outputs\r\nFROM \"guardian\".\"langchain_metrics\"\r\nWHERE parent_run_id != 'None'\r\nORDER BY start_time ASC\r\nLIMIT 1000;",
           "refId": "A"
         }
       ],
@@ -245,5 +347,5 @@
   "timezone": "browser",
   "title": "DB Metrics Visualization",
   "uid": "90ced2bd-5ea8-42c5-b87b-be9e1a8cdb4c",
-  "version": 11
+  "version": 6
 }
