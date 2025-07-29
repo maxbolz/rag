@@ -124,7 +124,7 @@ h1 {{
     letter-spacing: 1px;
 }}
 
-[data-testid="stToolbar"], [data-testid="stHeader"] {{
+[data-testid="stHeader"] {{
     background: linear-gradient(135deg, #052962, #1558aa) !important;
 }}
 
